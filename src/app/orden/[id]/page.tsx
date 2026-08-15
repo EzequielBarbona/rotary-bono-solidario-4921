@@ -89,7 +89,7 @@ export default function OrderPage({
 
       <div className="border border-rotary-ink/10 bg-rotary-azure/5 rounded-lg p-4 flex flex-col gap-2 text-rotary-ink">
         <p>
-          <span className="font-semibold">Numeros:</span> {numbersText}
+          <span className="font-semibold">Números:</span> {numbersText}
         </p>
         <p>
           <span className="font-semibold">Total:</span> {formatArs(order.totalAmount)}
@@ -103,7 +103,7 @@ export default function OrderPage({
         <div className="border border-rotary-gold/40 bg-rotary-gold/10 rounded-lg p-4 flex flex-col gap-2">
           <p className="font-bold text-rotary-ink">Pago pendiente</p>
           <p className="text-sm text-rotary-ink/80">
-            El pago online todavia no esta conectado. El subcomite se va a
+            El pago online todavía no está conectado. El subcomité se va a
             contactar para coordinar el pago y confirmar tu reserva.
           </p>
           {remainingMs !== null && (
@@ -136,7 +136,7 @@ export default function OrderPage({
       {order.status === "EXPIRADO" && (
         <div className="border border-red-300 bg-red-50 rounded-lg p-4">
           <p className="font-bold text-red-800">
-            La reserva expiro sin confirmarse el pago. Volve a elegir tus numeros.
+            La reserva expiró sin confirmarse el pago. Volvé a elegir tus números.
           </p>
         </div>
       )}

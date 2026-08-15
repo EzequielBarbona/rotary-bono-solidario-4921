@@ -53,7 +53,7 @@ type ReserveInput = {
 
 export class ReservationConflictError extends Error {
   constructor() {
-    super("Uno o mas numeros elegidos ya no estan disponibles.");
+    super("Uno o más números elegidos ya no están disponibles.");
     this.name = "ReservationConflictError";
   }
 }

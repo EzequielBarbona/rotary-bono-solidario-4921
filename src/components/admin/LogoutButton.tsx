@@ -16,7 +16,7 @@ export function LogoutButton() {
       onClick={handleLogout}
       className="text-sm text-rotary-azure hover:underline"
     >
-      Cerrar sesion
+      Cerrar sesión
     </button>
   );
 }

@@ -34,7 +34,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
       );
       const next = new Set([...prev].filter((n) => stillAvailable.has(n)));
       if (next.size !== prev.size) {
-        setError("Algunos numeros que habias elegido ya no estan disponibles y fueron quitados de tu seleccion.");
+        setError("Algunos números que habías elegido ya no están disponibles y fueron quitados de tu selección.");
       }
       return next;
     });
@@ -80,7 +80,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
   }
 
   if (!tickets) {
-    return <p className="text-center py-12 text-rotary-ink/60">Cargando numeros...</p>;
+    return <p className="text-center py-12 text-rotary-ink/60">Cargando números...</p>;
   }
 
   const canContinue = selected.size === quantity;
@@ -92,10 +92,10 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
           <Legend colorClass="bg-white border border-rotary-ink/20" label="Disponible" />
           <Legend colorClass="bg-rotary-gold" label="Reservado" />
           <Legend colorClass="bg-rotary-ink/30" label="Vendido" />
-          <Legend colorClass="bg-rotary-azure" label="Tu seleccion" />
+          <Legend colorClass="bg-rotary-azure" label="Tu selección" />
         </div>
         <p className="font-medium text-rotary-ink">
-          {selected.size} de {quantity} numeros elegidos
+          {selected.size} de {quantity} números elegidos
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
         <div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <p className="font-medium text-rotary-ink">
-            {selected.size} de {quantity} numeros elegidos
+            {selected.size} de {quantity} números elegidos
           </p>
         </div>
         <button

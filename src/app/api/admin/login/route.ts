@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const password = typeof body?.password === "string" ? body.password : "";
 
   if (password !== process.env.ADMIN_SECRET) {
-    return NextResponse.json({ error: "Contrasena incorrecta." }, { status: 401 });
+    return NextResponse.json({ error: "Contraseña incorrecta." }, { status: 401 });
   }
 
   const response = NextResponse.json({ ok: true });

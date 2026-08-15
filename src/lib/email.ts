@@ -17,12 +17,12 @@ export async function sendConfirmationEmail(input: ConfirmationEmailInput) {
     .map((n) => n.toString().padStart(4, "0"))
     .join(", ");
 
-  const subject = `Confirmacion de compra - ${raffleConfig.title}`;
+  const subject = `Confirmación de compra - ${raffleConfig.title}`;
   const body = [
     `Hola ${buyerName},`,
     "",
-    `Tu compra fue confirmada. Numero de orden: ${orderId}.`,
-    `Tus numeros: ${numbersText}`,
+    `Tu compra fue confirmada. Número de orden: ${orderId}.`,
+    `Tus números: ${numbersText}`,
     `Monto total: $${totalAmount} ARS`,
     `Fecha del sorteo: ${formatDateArs(raffleConfig.drawDate)}`,
     "",

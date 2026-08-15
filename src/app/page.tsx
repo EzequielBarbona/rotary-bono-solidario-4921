@@ -46,7 +46,7 @@ export default async function Home() {
             className="w-64 sm:w-80 h-auto"
           />
           <span className="uppercase tracking-widest text-sm font-semibold text-rotary-gold">
-            Subcomite PolioPlus &middot; Distrito Rotary 4921
+            Subcomité PolioPlus &middot; Distrito Rotary 4921
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight text-balance">
             {raffleConfig.title}
@@ -85,7 +85,7 @@ export default async function Home() {
             />
           </svg>
           <h2 className="text-3xl font-extrabold text-rotary-ink text-balance">
-            Estadia de 5 noches para 2 personas
+            Estadía de 5 noches para 2 personas
           </h2>
           <p className="text-rotary-ink/70 text-lg">A elegir entre:</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -109,13 +109,12 @@ export default async function Home() {
             height={80}
             className="rounded-xl ring-4 ring-white/20"
           />
-          <h2 className="text-2xl font-extrabold">Como ayuda tu compra</h2>
+          <h2 className="text-2xl font-extrabold">Cómo ayuda tu compra</h2>
           <p className="text-white/90 leading-relaxed">
-            Lo recaudado con este bono solidario va integramente al programa{" "}
-            <span className="font-bold text-rotary-gold">PolioPlus</span> del
-            Distrito Rotary 4921, que financia campanas de vacunacion para
-            erradicar la polio en el mundo, en conjunto con la OMS, UNICEF y la
-            Fundacion Gates. Cada numero que comprás suma a ese objetivo.
+            Lo recaudado con este bono solidario va íntegramente al programa{" "}
+            <span className="font-bold text-rotary-gold">PolioPlus</span> de Rotary
+            International, que financia campañas de vacunación para Erradicar la Polio
+            en el mundo. Cada número que comprás suma a ese objetivo.
           </p>
 
           <div className="mt-2 border-t border-white/20 pt-6 w-full flex flex-col items-center gap-2">
@@ -129,7 +128,7 @@ export default async function Home() {
               </>
             ) : (
               <span className="text-white/90">
-                Todavia no hay bonos confirmados. ¡Sé el primero en sumar!
+                Todavía no hay bonos confirmados. ¡Sé el primero en sumar!
               </span>
             )}
 
@@ -143,14 +142,14 @@ export default async function Home() {
                   className="w-full max-w-xl flex justify-center"
                 />
                 <p className="text-sm text-white/80">
-                  Cada figura representa {pictogram.unitsPerIcon} ninos o ninas. Si cumplimos
-                  nuestro objetivo estaremos ayudando a mas de{" "}
+                  Cada figura representa {pictogram.unitsPerIcon} niños o niñas. Si cumplimos
+                  nuestro objetivo estaremos ayudando a más de{" "}
                   <span className="font-bold text-white">6500</span> infantes.
                 </p>
 
                 <details className="text-xs text-white/50 mt-1">
                   <summary className="cursor-pointer hover:text-white/75 transition-colors">
-                    ¿Como hicimos el calculo?
+                    ¿Cómo hicimos el cálculo?
                   </summary>
                   <div className="mt-3 max-w-md mx-auto text-left leading-relaxed bg-white/10 rounded-lg p-4 text-white/80">
                     <p>
@@ -159,11 +158,11 @@ export default async function Home() {
                         US$ {raffleConfig.costPerChildUsd}
                       </span>{" "}
                       se puede proteger completamente a un chico contra la polio (la
-                      vacuna y toda la logistica para aplicarla), segun sus propios
+                      vacuna y toda la logística para aplicarla), según sus propios
                       datos publicados.
                     </p>
                     <p className="mt-2">
-                      Convertimos el precio del bono a dolares con un tipo de cambio
+                      Convertimos el precio del bono a dólares con un tipo de cambio
                       de referencia que actualizamos de vez en cuando (hoy:{" "}
                       <span className="font-semibold text-white">
                         ${raffleConfig.usdArsRate.toLocaleString("es-AR")} ARS
@@ -173,7 +172,7 @@ export default async function Home() {
                     {raffleConfig.gatesMatchMultiplier > 1 && (
                       <p className="mt-2">
                         Como lo recaudado va al PolioPlus Fund oficial de Rotary, la
-                        Fundacion Gates dona el doble de lo que se junta, asi que el
+                        Fundación Gates dona el doble de lo que se junta, así que el
                         aporte real se multiplica por{" "}
                         <span className="font-semibold text-white">
                           {raffleConfig.gatesMatchMultiplier}
@@ -182,8 +181,8 @@ export default async function Home() {
                       </p>
                     )}
                     <p className="mt-2">
-                      Con esas cuentas calculamos cuantos chicos protege cada bono, y
-                      sumamos todos los bonos ya confirmados para el numero de arriba.
+                      Con esas cuentas calculamos cuántos chicos protege cada bono, y
+                      sumamos todos los bonos ya confirmados para el número de arriba.
                     </p>
                   </div>
                 </details>
@@ -196,7 +195,7 @@ export default async function Home() {
       <section className="bg-white px-4 py-16">
         <div className="max-w-lg w-full mx-auto flex flex-col items-center gap-4 text-center">
           <p className="text-rotary-ink text-lg">
-            Elegi tus numeros antes de que se agoten.
+            Elegí tus números antes de que se agoten.
           </p>
           <Link
             href="/comprar/cantidad"

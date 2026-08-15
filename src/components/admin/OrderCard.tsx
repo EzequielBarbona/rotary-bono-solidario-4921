@@ -48,7 +48,7 @@ export function OrderCard({ order }: { order: AdminOrder }) {
       }
       router.refresh();
     } catch {
-      setError("Error de conexion. Intenta de nuevo.");
+      setError("Error de conexión. Intentá de nuevo.");
     } finally {
       setConfirming(false);
     }
@@ -97,7 +97,7 @@ export function OrderCard({ order }: { order: AdminOrder }) {
           </p>
         )}
         <p>
-          <span className="font-semibold">Numeros:</span> {numbersText}
+          <span className="font-semibold">Números:</span> {numbersText}
         </p>
         <p>
           <span className="font-semibold">Total:</span> {formatArs(order.totalAmount)}

@@ -13,7 +13,7 @@ export async function GET(
   const { id } = await params;
   const orderId = Number(id);
   if (!Number.isInteger(orderId)) {
-    return NextResponse.json({ error: "Orden invalida." }, { status: 400 });
+    return NextResponse.json({ error: "Orden inválida." }, { status: 400 });
   }
 
   const order = await prisma.order.findUnique({

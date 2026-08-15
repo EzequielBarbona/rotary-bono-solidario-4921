@@ -24,7 +24,7 @@ export async function POST(
   const { id } = await params;
   const orderId = Number(id);
   if (!Number.isInteger(orderId)) {
-    return NextResponse.json({ error: "Orden invalida." }, { status: 400 });
+    return NextResponse.json({ error: "Orden inválida." }, { status: 400 });
   }
 
   const order = await prisma.order.findUnique({
@@ -36,7 +36,7 @@ export async function POST(
     return NextResponse.json({ error: "Orden no encontrada." }, { status: 404 });
   }
   if (order.status !== "PENDIENTE") {
-    return NextResponse.json({ error: `La orden ya esta en estado ${order.status}.` }, { status: 409 });
+    return NextResponse.json({ error: `La orden ya está en estado ${order.status}.` }, { status: 409 });
   }
 
   await prisma.$transaction([

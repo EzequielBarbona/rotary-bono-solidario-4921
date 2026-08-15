@@ -36,7 +36,7 @@ export default async function AdminPage() {
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-rotary-ink">Panel de administracion</h1>
+        <h1 className="text-2xl font-extrabold text-rotary-ink">Panel de administración</h1>
         <LogoutButton />
       </div>
 
@@ -44,12 +44,12 @@ export default async function AdminPage() {
         <Stat label="Vendidos" value={countByStatus.VENDIDO ?? 0} />
         <Stat label="Reservados" value={countByStatus.RESERVADO ?? 0} />
         <Stat label="Disponibles" value={countByStatus.DISPONIBLE ?? 0} />
-        <Stat label="Ordenes pendientes de confirmar" value={pendingCount} highlight />
+        <Stat label="Órdenes pendientes de confirmar" value={pendingCount} highlight />
       </div>
 
       <div className="flex flex-col gap-4">
         {sortedOrders.length === 0 && (
-          <p className="text-rotary-ink/60">Todavia no hay ordenes.</p>
+          <p className="text-rotary-ink/60">Todavía no hay órdenes.</p>
         )}
         {sortedOrders.map((order) => (
           <OrderCard
@@ -76,7 +76,7 @@ export default async function AdminPage() {
         href="/"
         className="self-center text-sm text-rotary-azure hover:underline mt-4"
       >
-        ‹ Volver a la pagina principal
+        ‹ Volver a la página principal
       </Link>
     </main>
   );

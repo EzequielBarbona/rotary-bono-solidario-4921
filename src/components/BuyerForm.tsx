@@ -52,7 +52,7 @@ export function BuyerForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!receiptFile) {
-      setError("Subi una captura del comprobante de transferencia.");
+      setError("Subí una captura del comprobante de transferencia.");
       return;
     }
     setSubmitting(true);
@@ -75,7 +75,7 @@ export function BuyerForm({
       }
       router.push(`/orden/${data.orderId}`);
     } catch {
-      setError("Error de conexion. Intenta de nuevo.");
+      setError("Error de conexión. Intentá de nuevo.");
     } finally {
       setSubmitting(false);
     }
@@ -85,7 +85,7 @@ export function BuyerForm({
     <div className="flex flex-col gap-6">
       <div className="border border-rotary-ink/10 bg-rotary-azure/5 rounded-lg p-4 flex flex-col gap-1 text-rotary-ink">
         <p>
-          <span className="font-semibold">Numeros:</span> {numbersText}
+          <span className="font-semibold">Números:</span> {numbersText}
         </p>
         <p>
           <span className="font-semibold">Total:</span>{" "}
@@ -116,7 +116,7 @@ export function BuyerForm({
       </div>
 
       <div className="border border-rotary-gold/40 bg-rotary-gold/10 rounded-lg p-4 flex flex-col gap-1 text-rotary-ink text-sm">
-        <p className="font-bold">Transferi el total a esta cuenta</p>
+        <p className="font-bold">Transferí el total a esta cuenta</p>
         <p>
           <span className="font-semibold">Titular:</span> {bankAccountHolder}
         </p>
@@ -127,7 +127,7 @@ export function BuyerForm({
           <span className="font-semibold">CBU:</span> {bankCbu}
         </p>
         <p className="text-rotary-ink/70 mt-1">
-          Despues subi la captura de esa transferencia en el formulario.
+          Después subí la captura de esa transferencia en el formulario.
         </p>
       </div>
 
@@ -150,14 +150,14 @@ export function BuyerForm({
         />
         <input
           required
-          placeholder="Telefono / WhatsApp"
+          placeholder="Teléfono / WhatsApp"
           value={buyerPhone}
           onChange={(e) => setBuyerPhone(e.target.value)}
           className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
         />
         <input
           required
-          placeholder="CUIT / CUIL con el que transferis"
+          placeholder="CUIT / CUIL con el que transferís"
           value={buyerCuit}
           onChange={(e) => setBuyerCuit(e.target.value)}
           className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
@@ -184,35 +184,35 @@ export function BuyerForm({
 
         <details className="text-xs text-rotary-ink/50">
           <summary className="cursor-pointer hover:text-rotary-ink/75 transition-colors">
-            ¿Por que te pedimos estos datos?
+            ¿Por qué te pedimos estos datos?
           </summary>
           <div className="mt-3 leading-relaxed bg-rotary-ink/5 rounded-lg p-4 text-rotary-ink/70 flex flex-col gap-2">
             <p>
-              <span className="font-semibold text-rotary-ink">Nombre, email y telefono:</span>{" "}
-              para mandarte la confirmacion con tus numeros una vez que verifiquemos el pago,
+              <span className="font-semibold text-rotary-ink">Nombre, email y teléfono:</span>{" "}
+              para mandarte la confirmación con tus números una vez que verifiquemos el pago,
               y para poder contactarte si sos ganador del sorteo.
             </p>
             <p>
               <span className="font-semibold text-rotary-ink">CUIT/CUIL:</span> las
-              transferencias bancarias muestran el CUIT de quien las hace, asi que lo usamos
-              para cruzar tu pago con tu compra mas rapido y con mas seguridad, sobre todo si
-              hay varias compras con montos parecidos el mismo dia.
+              transferencias bancarias muestran el CUIT de quien las hace, así que lo usamos
+              para cruzar tu pago con tu compra más rápido y con más seguridad, sobre todo si
+              hay varias compras con montos parecidos el mismo día.
             </p>
             <p>
               <span className="font-semibold text-rotary-ink">
                 Club al que pertenecés (opcional):
               </span>{" "}
-              nos sirve para saber que clubes del distrito estan colaborando. No es
+              nos sirve para saber qué clubes del distrito están colaborando. No es
               obligatorio si no pertenecés a ninguno.
             </p>
             <p>
               <span className="font-semibold text-rotary-ink">Captura del comprobante:</span>{" "}
               es la prueba de que hiciste la transferencia &mdash; sin ella no podemos
-              confirmar tu pago ni liberar tus numeros de forma definitiva.
+              confirmar tu pago ni liberar tus números de forma definitiva.
             </p>
             <p className="text-rotary-ink/60">
-              Tus datos los usamos solo para gestionar esta rifa (confirmar el pago y
-              contactarte) &mdash; no se comparten con nadie mas.
+              Tus datos los usamos solo para gestionar este bono solidario (confirmar el
+              pago y contactarte) &mdash; no se comparten con nadie más.
             </p>
           </div>
         </details>

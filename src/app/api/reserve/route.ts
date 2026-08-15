@@ -5,13 +5,13 @@ import { ReservationConflictError, reserveTickets } from "@/lib/tickets";
 
 const fieldsSchema = z.object({
   buyerName: z.string().trim().min(2, "Falta el nombre."),
-  buyerEmail: z.string().trim().email("Email invalido."),
-  buyerPhone: z.string().trim().min(6, "Falta el telefono."),
+  buyerEmail: z.string().trim().email("Email inválido."),
+  buyerPhone: z.string().trim().min(6, "Falta el teléfono."),
   buyerCuit: z
     .string()
     .trim()
     .transform((v) => v.replace(/\D/g, ""))
-    .refine((v) => v.length === 11, "El CUIT/CUIL debe tener 11 numeros."),
+    .refine((v) => v.length === 11, "El CUIT/CUIL debe tener 11 números."),
   buyerClub: z
     .string()
     .trim()
@@ -21,23 +21,23 @@ const fieldsSchema = z.object({
 
 const numbersSchema = z
   .array(z.number().int().min(1).max(raffleConfig.totalTickets))
-  .min(1, "Elegi al menos un numero.")
+  .min(1, "Elegí al menos un número.")
   .max(
     raffleConfig.maxTicketsPerOrder,
-    `Como maximo se pueden reservar ${raffleConfig.maxTicketsPerOrder} numeros por compra.`
+    `Como máximo se pueden reservar ${raffleConfig.maxTicketsPerOrder} números por compra.`
   );
 
 export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   if (!form) {
-    return NextResponse.json({ error: "Solicitud invalida." }, { status: 400 });
+    return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
   }
 
   let numbers: number[];
   try {
     numbers = numbersSchema.parse(JSON.parse(String(form.get("numbers"))));
   } catch {
-    return NextResponse.json({ error: "Numeros invalidos." }, { status: 400 });
+    return NextResponse.json({ error: "Números inválidos." }, { status: 400 });
   }
 
   const parsedFields = fieldsSchema.safeParse({
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   const receipt = form.get("receipt");
   if (!(receipt instanceof File) || receipt.size === 0) {
     return NextResponse.json(
-      { error: "Subi una captura del comprobante de transferencia." },
+      { error: "Subí una captura del comprobante de transferencia." },
       { status: 400 }
     );
   }
