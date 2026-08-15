@@ -1,26 +1,39 @@
 @import "tailwindcss";
 
+/*
+ * Paleta oficial de Rotary (tomada de la guia de marca "Tus logotipos
+ * de un vistazo", abril 2025): Rotary Royal Blue y Azure para acciones
+ * principales, Turquoise para bloques de seccion, Rotary Gold como
+ * acento y Cardinal para el sello de End Polio Now.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2f3f5;
+  --foreground: #393a4a;
+  --color-rotary-azure: #0067c8;
+  --color-rotary-azure-dark: #17458f;
+  --color-rotary-teal: #00adbb;
+  --color-rotary-teal-dark: #00838f;
+  --color-rotary-gold: #f7a81b;
+  --color-rotary-gold-dark: #d38f0f;
+  --color-rotary-cardinal: #e02927;
+  --color-rotary-ink: #393a4a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-rotary-azure: var(--color-rotary-azure);
+  --color-rotary-azure-dark: var(--color-rotary-azure-dark);
+  --color-rotary-teal: var(--color-rotary-teal);
+  --color-rotary-teal-dark: var(--color-rotary-teal-dark);
+  --color-rotary-gold: var(--color-rotary-gold);
+  --color-rotary-gold-dark: var(--color-rotary-gold-dark);
+  --color-rotary-cardinal: var(--color-rotary-cardinal);
+  --color-rotary-ink: var(--color-rotary-ink);
+  --font-sans: var(--font-open-sans);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
