@@ -4,15 +4,21 @@ import { raffleConfig } from "@/lib/config";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
 import { formatDateArs } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { releaseExpiredHolds } from "@/lib/tickets";
 import { PersonPictogram } from "@/components/PersonPictogram";
 
-// El contador de vacunas tiene que reflejar las ordenes confirmadas en
-// tiempo real, no un valor congelado en el build.
+// El contador de vacunas tiene que reflejar las ordenes en tiempo real,
+// no un valor congelado en el build.
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  // Cuenta reservas (PENDIENTE) y pagos confirmados (PAGADO): las figuras
+  // se colorean apenas alguien reserva, no recien cuando se confirma el
+  // pago. Liberamos las reservas vencidas antes de contar para que el
+  // numero no incluya gente que reservo y nunca volvio a pagar.
+  await releaseExpiredHolds();
   const { _sum } = await prisma.order.aggregate({
-    where: { status: "PAGADO" },
+    where: { status: { in: ["PENDIENTE", "PAGADO"] } },
     _sum: { totalAmount: true },
   });
   const kidsSoFar = childrenProtected(_sum.totalAmount ?? 0);
