@@ -37,14 +37,6 @@ export default async function Home() {
           className="pointer-events-none absolute -left-16 bottom-[-6rem] w-56 h-56 rounded-full border-[16px] border-rotary-gold/25"
         />
         <div className="relative max-w-3xl w-full mx-auto px-4 pt-12 pb-20 flex flex-col items-center gap-5 text-center">
-          <Image
-            src="/brand/rotary-endpolio-lockup-white.png"
-            alt="Rotary Distrito 4921 - End Polio Now"
-            width={340}
-            height={152}
-            priority
-            className="w-64 sm:w-80 h-auto"
-          />
           <span className="uppercase tracking-widest text-sm font-semibold text-rotary-gold">
             Subcomité PolioPlus &middot; Distrito Rotary 4921
           </span>
