@@ -182,6 +182,41 @@ export function BuyerForm({
           />
         </label>
 
+        <details className="text-xs text-rotary-ink/50">
+          <summary className="cursor-pointer hover:text-rotary-ink/75 transition-colors">
+            ¿Por que te pedimos estos datos?
+          </summary>
+          <div className="mt-3 leading-relaxed bg-rotary-ink/5 rounded-lg p-4 text-rotary-ink/70 flex flex-col gap-2">
+            <p>
+              <span className="font-semibold text-rotary-ink">Nombre, email y telefono:</span>{" "}
+              para mandarte la confirmacion con tus numeros una vez que verifiquemos el pago,
+              y para poder contactarte si sos ganador del sorteo.
+            </p>
+            <p>
+              <span className="font-semibold text-rotary-ink">CUIT/CUIL:</span> las
+              transferencias bancarias muestran el CUIT de quien las hace, asi que lo usamos
+              para cruzar tu pago con tu compra mas rapido y con mas seguridad, sobre todo si
+              hay varias compras con montos parecidos el mismo dia.
+            </p>
+            <p>
+              <span className="font-semibold text-rotary-ink">
+                Club al que pertenecés (opcional):
+              </span>{" "}
+              nos sirve para saber que clubes del distrito estan colaborando. No es
+              obligatorio si no pertenecés a ninguno.
+            </p>
+            <p>
+              <span className="font-semibold text-rotary-ink">Captura del comprobante:</span>{" "}
+              es la prueba de que hiciste la transferencia &mdash; sin ella no podemos
+              confirmar tu pago ni liberar tus numeros de forma definitiva.
+            </p>
+            <p className="text-rotary-ink/60">
+              Tus datos los usamos solo para gestionar esta rifa (confirmar el pago y
+              contactarte) &mdash; no se comparten con nadie mas.
+            </p>
+          </div>
+        </details>
+
         <button
           type="submit"
           disabled={submitting}
