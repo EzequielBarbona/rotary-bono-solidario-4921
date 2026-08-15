@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { raffleConfig } from "@/lib/config";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
+import { formatDateArs } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { PersonPictogram } from "@/components/PersonPictogram";
 
@@ -54,7 +55,9 @@ export default async function Home() {
           <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight text-balance">
             {raffleConfig.title}
           </h1>
-          <p className="text-lg text-white/90">Sorteo: {raffleConfig.drawDate}</p>
+          <p className="text-lg text-white/90">
+            Fecha del sorteo {formatDateArs(raffleConfig.drawDate)}
+          </p>
           <Link
             href="/comprar/cantidad"
             className="mt-4 bg-rotary-gold text-rotary-ink font-bold text-lg px-10 py-4 rounded-full hover:bg-rotary-gold-dark transition-colors"
