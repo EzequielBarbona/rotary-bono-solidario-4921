@@ -76,13 +76,34 @@ export default async function Home() {
             fill="none"
             className="text-rotary-gold"
           >
+            <rect
+              x="3"
+              y="9"
+              width="14"
+              height="11"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.6"
+            />
             <path
-              d="M3 21l1.6-6.4a2 2 0 011.94-1.6h10.92a2 2 0 011.94 1.6L21 21M6 13V8a2 2 0 012-2h8a2 2 0 012 2v5M9 6V4.5A1.5 1.5 0 0110.5 3h3A1.5 1.5 0 0115 4.5V6"
+              d="M8 9V7a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0114 7v2"
               stroke="currentColor"
               strokeWidth="1.6"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+            <line x1="3" y1="14.5" x2="17" y2="14.5" stroke="currentColor" strokeWidth="1.3" />
+            <circle cx="18.5" cy="4.5" r="1.8" stroke="currentColor" strokeWidth="1.4" />
+            <g stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+              <line x1="20.5" y1="4.5" x2="21.4" y2="4.5" />
+              <line x1="16.5" y1="4.5" x2="15.6" y2="4.5" />
+              <line x1="18.5" y1="2.5" x2="18.5" y2="1.6" />
+              <line x1="18.5" y1="6.5" x2="18.5" y2="7.4" />
+              <line x1="19.91" y1="3.09" x2="20.55" y2="2.45" />
+              <line x1="17.09" y1="3.09" x2="16.45" y2="2.45" />
+              <line x1="17.09" y1="5.91" x2="16.45" y2="6.55" />
+              <line x1="19.91" y1="5.91" x2="20.55" y2="6.55" />
+            </g>
           </svg>
           <h2 className="text-3xl font-extrabold text-rotary-ink text-balance">
             Estadía de 5 noches para 2 personas
