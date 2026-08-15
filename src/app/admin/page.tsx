@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { isAdminSessionActive } from "@/lib/admin-auth";
+import { formatArs } from "@/lib/format";
+import { startOfArtDay, startOfArtWeek } from "@/lib/dates";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { OrderCard } from "@/components/admin/OrderCard";
@@ -14,12 +16,28 @@ export default async function AdminPage() {
     return <AdminLogin />;
   }
 
-  const [orders, ticketCounts] = await Promise.all([
+  const now = new Date();
+  const todayStart = startOfArtDay(now);
+  const weekStart = startOfArtWeek(now);
+  // Monto reservado (pendiente + confirmado), no solo lo ya confirmado por un
+  // admin: sirve para cruzar contra el resumen bancario del dia sin esperar
+  // a que alguien haga clic en "Confirmar pago".
+  const claimedStatus: { in: ("PENDIENTE" | "PAGADO")[] } = { in: ["PENDIENTE", "PAGADO"] };
+
+  const [orders, ticketCounts, todayTotal, weekTotal] = await Promise.all([
     prisma.order.findMany({
       include: { tickets: { select: { number: true } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.ticket.groupBy({ by: ["status"], _count: true }),
+    prisma.order.aggregate({
+      where: { status: claimedStatus, createdAt: { gte: todayStart } },
+      _sum: { totalAmount: true },
+    }),
+    prisma.order.aggregate({
+      where: { status: claimedStatus, createdAt: { gte: weekStart } },
+      _sum: { totalAmount: true },
+    }),
   ]);
 
   const sortedOrders = [...orders].sort((a, b) => {
@@ -46,6 +64,14 @@ export default async function AdminPage() {
         <Stat label="Disponibles" value={countByStatus.DISPONIBLE ?? 0} />
         <Stat label="Órdenes pendientes de confirmar" value={pendingCount} highlight />
       </div>
+
+      <div className="flex flex-wrap gap-3 text-sm">
+        <Stat label="Transferido hoy" value={formatArs(todayTotal._sum?.totalAmount ?? 0)} />
+        <Stat label="Transferido esta semana" value={formatArs(weekTotal._sum?.totalAmount ?? 0)} />
+      </div>
+      <p className="text-xs text-rotary-ink/50 -mt-3">
+        Incluye reservas todavía no confirmadas por un admin, para poder cruzarlo contra el resumen bancario del día.
+      </p>
 
       <div className="flex flex-col gap-4">
         {sortedOrders.length === 0 && (
@@ -88,7 +114,7 @@ function Stat({
   highlight,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   highlight?: boolean;
 }) {
   return (

@@ -30,6 +30,9 @@ export function OrderCard({ order }: { order: AdminOrder }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelText, setCancelText] = useState("");
 
   const numbersText = [...order.numbers]
     .sort((a, b) => a - b)
@@ -53,6 +56,27 @@ export function OrderCard({ order }: { order: AdminOrder }) {
       setConfirming(false);
     }
   }
+
+  async function handleCancel() {
+    setCancelling(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/cancel`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "No se pudo dar de baja la reserva.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Error de conexión. Intentá de nuevo.");
+    } finally {
+      setCancelling(false);
+    }
+  }
+
+  const canCancel = order.status === "PENDIENTE" || order.status === "PAGADO";
+  const cancelConfirmed = cancelText.trim().toUpperCase() === "BAJA";
 
   return (
     <div className="border border-rotary-ink/10 rounded-xl p-4 flex flex-col sm:flex-row gap-4">
@@ -103,17 +127,65 @@ export function OrderCard({ order }: { order: AdminOrder }) {
           <span className="font-semibold">Total:</span> {formatArs(order.totalAmount)}
         </p>
 
-        {order.status === "PENDIENTE" && (
-          <div className="mt-2 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={confirming}
-              className="bg-rotary-azure text-white text-sm font-bold px-4 py-2 rounded-full hover:bg-rotary-azure-dark disabled:opacity-50 transition-colors"
-            >
-              {confirming ? "Confirmando..." : "Confirmar pago"}
-            </button>
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+        {(order.status === "PENDIENTE" || canCancel) && (
+          <div className="mt-2 flex flex-col gap-2">
+            <div className="flex items-center gap-3 flex-wrap">
+              {order.status === "PENDIENTE" && (
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={confirming}
+                  className="bg-rotary-azure text-white text-sm font-bold px-4 py-2 rounded-full hover:bg-rotary-azure-dark disabled:opacity-50 transition-colors"
+                >
+                  {confirming ? "Confirmando..." : "Confirmar pago"}
+                </button>
+              )}
+              {canCancel && !showCancelConfirm && (
+                <button
+                  type="button"
+                  onClick={() => setShowCancelConfirm(true)}
+                  className="text-red-600 text-sm font-semibold hover:underline"
+                >
+                  Dar de baja reserva
+                </button>
+              )}
+              {error && <p className="text-red-600 text-sm">{error}</p>}
+            </div>
+
+            {showCancelConfirm && (
+              <div className="border border-red-200 bg-red-50 rounded-lg p-3 flex flex-col gap-2">
+                <p className="text-sm text-red-800">
+                  Esto libera los números de esta orden para que otra persona los pueda reservar.
+                  Escribí <span className="font-mono font-bold">BAJA</span> para confirmar.
+                </p>
+                <input
+                  value={cancelText}
+                  onChange={(e) => setCancelText(e.target.value)}
+                  placeholder="BAJA"
+                  className="border border-red-300 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-red-400"
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={!cancelConfirmed || cancelling}
+                    className="bg-red-600 text-white text-sm font-bold px-4 py-2 rounded-full hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {cancelling ? "Dando de baja..." : "Confirmar baja"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCancelConfirm(false);
+                      setCancelText("");
+                    }}
+                    className="text-sm text-rotary-ink/60 hover:underline"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
