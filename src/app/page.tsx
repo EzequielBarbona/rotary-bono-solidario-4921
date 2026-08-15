@@ -16,7 +16,7 @@ export default async function Home() {
   });
   const kidsSoFar = childrenProtected(_sum.totalAmount ?? 0);
   const kidsGoal = childrenProtected(raffleConfig.totalTickets * raffleConfig.ticketPriceArs);
-  const pictogram = pictogramScale(kidsGoal, kidsSoFar);
+  const pictogram = pictogramScale(kidsGoal, kidsSoFar, 400, 10);
 
   return (
     <main className="flex-1 flex flex-col">
@@ -144,16 +144,50 @@ export default async function Home() {
                   className="w-full max-w-xl flex justify-center"
                 />
                 <p className="text-sm text-white/80">
-                  {pictogram.unitsPerIcon > 1
-                    ? `Cada figura representa ${pictogram.unitsPerIcon} chicos. `
-                    : "Cada figura es un chico protegido. "}
-                  Nuestra meta si se venden los{" "}
-                  {raffleConfig.totalTickets.toLocaleString("es-AR")} numeros: aproximadamente{" "}
-                  <span className="font-bold text-white">
-                    {kidsGoal.toLocaleString("es-AR")}
-                  </span>{" "}
-                  chicos.
+                  Cada figura representa {pictogram.unitsPerIcon} ninos o ninas. Si cumplimos
+                  nuestro objetivo estaremos ayudando a mas de{" "}
+                  <span className="font-bold text-white">6500</span> infantes.
                 </p>
+
+                <details className="text-xs text-white/50 mt-1">
+                  <summary className="cursor-pointer hover:text-white/75 transition-colors">
+                    ¿Como hicimos el calculo?
+                  </summary>
+                  <div className="mt-3 max-w-md mx-auto text-left leading-relaxed bg-white/10 rounded-lg p-4 text-white/80">
+                    <p>
+                      Rotary calcula que con{" "}
+                      <span className="font-semibold text-white">
+                        US$ {raffleConfig.costPerChildUsd}
+                      </span>{" "}
+                      se puede proteger completamente a un chico contra la polio (la
+                      vacuna y toda la logistica para aplicarla), segun sus propios
+                      datos publicados.
+                    </p>
+                    <p className="mt-2">
+                      Convertimos el precio del bono a dolares con un tipo de cambio
+                      de referencia que actualizamos de vez en cuando (hoy:{" "}
+                      <span className="font-semibold text-white">
+                        ${raffleConfig.usdArsRate.toLocaleString("es-AR")} ARS
+                      </span>{" "}
+                      = US$1).
+                    </p>
+                    {raffleConfig.gatesMatchMultiplier > 1 && (
+                      <p className="mt-2">
+                        Como lo recaudado va al PolioPlus Fund oficial de Rotary, la
+                        Fundacion Gates dona el doble de lo que se junta, asi que el
+                        aporte real se multiplica por{" "}
+                        <span className="font-semibold text-white">
+                          {raffleConfig.gatesMatchMultiplier}
+                        </span>
+                        .
+                      </p>
+                    )}
+                    <p className="mt-2">
+                      Con esas cuentas calculamos cuantos chicos protege cada bono, y
+                      sumamos todos los bonos ya confirmados para el numero de arriba.
+                    </p>
+                  </div>
+                </details>
               </div>
             )}
           </div>

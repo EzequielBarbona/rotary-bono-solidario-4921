@@ -16,12 +16,17 @@ export function childrenProtected(amountArs: number): number {
  * no una nube de puntos), agrupa varios chicos por figura cuando el total
  * es muy alto en vez de dibujar una figura por cada uno.
  */
-export function pictogramScale(total: number, filled: number, maxIcons = 400) {
-  if (total <= maxIcons) {
+export function pictogramScale(
+  total: number,
+  filled: number,
+  maxIcons = 400,
+  unitsPerIcon?: number,
+) {
+  const upi = unitsPerIcon ?? (total <= maxIcons ? 1 : Math.ceil(total / maxIcons));
+  if (upi <= 1) {
     return { displayTotal: total, displayFilled: filled, unitsPerIcon: 1 };
   }
-  const unitsPerIcon = Math.ceil(total / maxIcons);
-  const displayTotal = Math.ceil(total / unitsPerIcon);
-  const displayFilled = Math.ceil(filled / unitsPerIcon);
-  return { displayTotal, displayFilled, unitsPerIcon };
+  const displayTotal = Math.ceil(total / upi);
+  const displayFilled = Math.ceil(filled / upi);
+  return { displayTotal, displayFilled, unitsPerIcon: upi };
 }
