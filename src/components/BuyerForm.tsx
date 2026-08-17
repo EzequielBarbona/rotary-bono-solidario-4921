@@ -93,7 +93,7 @@ export function BuyerForm({
         </p>
         {kids > 0 && (
           <>
-            <p className="text-rotary-teal-dark">
+            <p className="text-base text-rotary-teal-dark">
               Estás aportando para proteger a{" "}
               <span className="font-bold">
                 {kids} chico{kids !== 1 ? "s" : ""}

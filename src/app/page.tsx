@@ -37,6 +37,14 @@ export default async function Home() {
           className="pointer-events-none absolute -left-16 bottom-[-6rem] w-56 h-56 rounded-full border-[16px] border-rotary-gold/25"
         />
         <div className="relative max-w-3xl w-full mx-auto px-4 pt-12 pb-20 flex flex-col items-center gap-5 text-center">
+          <Image
+            src="/brand/rotary-endpolio-lockup-white.png"
+            alt="Rotary Distrito 4921 - End Polio Now"
+            width={340}
+            height={152}
+            priority
+            className="w-80 sm:w-[28rem] h-auto"
+          />
           <span className="uppercase tracking-widest text-sm font-semibold text-rotary-gold">
             Subcomité PolioPlus &middot; Distrito Rotary 4921
           </span>
@@ -123,7 +131,7 @@ export default async function Home() {
             className="rounded-xl ring-4 ring-white/20"
           />
           <h2 className="text-2xl font-extrabold">Cómo ayuda tu compra</h2>
-          <p className="text-white/90 leading-relaxed">
+          <p className="text-base text-white/90 leading-relaxed">
             Lo recaudado con este bono solidario va íntegramente al programa{" "}
             <span className="font-bold text-rotary-gold">PolioPlus</span> de Rotary
             International, que financia campañas de vacunación para Erradicar la Polio
@@ -134,13 +142,13 @@ export default async function Home() {
             {kidsSoFar > 0 ? (
               <>
                 <span className="text-5xl font-extrabold text-rotary-gold">{kidsSoFar}</span>
-                <span className="text-white/90">
+                <span className="text-base text-white/90">
                   chico{kidsSoFar !== 1 ? "s" : ""} protegido{kidsSoFar !== 1 ? "s" : ""} contra
                   la polio gracias a este bono solidario
                 </span>
               </>
             ) : (
-              <span className="text-white/90">
+              <span className="text-base text-white/90">
                 Todavía no hay bonos confirmados. ¡Sé el primero en sumar!
               </span>
             )}

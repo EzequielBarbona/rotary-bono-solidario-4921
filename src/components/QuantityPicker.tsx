@@ -80,7 +80,7 @@ export function QuantityPicker({
       <button
         type="button"
         onClick={() => setValue(clamp(ticketsForChildren(TARGET_KIDS_GOAL, ticketPriceArs)))}
-        className="text-sm font-semibold text-rotary-teal-dark bg-rotary-teal/10 border border-rotary-teal/30 rounded-full px-4 py-2 hover:bg-rotary-teal/20 transition-colors"
+        className="text-sm font-semibold text-white bg-rotary-azure rounded-full px-4 py-2 hover:bg-rotary-azure-dark transition-colors"
       >
         Quiero ayudar a vacunar {TARGET_KIDS_GOAL} chicos
       </button>

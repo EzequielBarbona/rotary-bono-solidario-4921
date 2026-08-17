@@ -66,7 +66,7 @@ export default function OrderPage({
   if (notFound) {
     return (
       <main className="flex-1 max-w-lg w-full mx-auto px-4 py-12">
-        <p className="text-rotary-ink">No encontramos esa orden.</p>
+        <p className="text-base text-rotary-ink">No encontramos esa orden.</p>
       </main>
     );
   }
@@ -74,7 +74,7 @@ export default function OrderPage({
   if (!order) {
     return (
       <main className="flex-1 max-w-lg w-full mx-auto px-4 py-12">
-        <p className="text-rotary-ink/60">Cargando...</p>
+        <p className="text-base text-rotary-ink/60">Cargando...</p>
       </main>
     );
   }
@@ -101,7 +101,7 @@ export default function OrderPage({
 
       {order.status === "PENDIENTE" && (
         <div className="border border-rotary-gold/40 bg-rotary-gold/10 rounded-lg p-4 flex flex-col gap-2">
-          <p className="font-bold text-rotary-ink">Pago pendiente</p>
+          <p className="text-base font-bold text-rotary-ink">Pago pendiente</p>
           <p className="text-sm text-rotary-ink/80">
             El pago online todavía no está conectado. El subcomité se va a
             contactar para coordinar el pago y confirmar tu reserva.
@@ -127,7 +127,7 @@ export default function OrderPage({
 
       {order.status === "PAGADO" && (
         <div className="border border-rotary-teal/30 bg-rotary-teal/10 rounded-lg p-4">
-          <p className="font-bold text-rotary-teal-dark">
+          <p className="text-base font-bold text-rotary-teal-dark">
             Pago confirmado. Te enviamos un email con el detalle.
           </p>
         </div>
@@ -135,7 +135,7 @@ export default function OrderPage({
 
       {order.status === "EXPIRADO" && (
         <div className="border border-red-300 bg-red-50 rounded-lg p-4">
-          <p className="font-bold text-red-800">
+          <p className="text-base font-bold text-red-800">
             La reserva expiró sin confirmarse el pago. Volvé a elegir tus números.
           </p>
         </div>

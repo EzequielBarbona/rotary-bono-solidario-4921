@@ -80,7 +80,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
   }
 
   if (!tickets) {
-    return <p className="text-center py-12 text-rotary-ink/60">Cargando números...</p>;
+    return <p className="text-base text-center py-12 text-rotary-ink/60">Cargando números...</p>;
   }
 
   const canContinue = selected.size === quantity;
@@ -94,7 +94,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
           <Legend colorClass="bg-rotary-ink/30" label="Vendido" />
           <Legend colorClass="bg-rotary-azure" label="Tu selección" />
         </div>
-        <p className="font-medium text-rotary-ink">
+        <p className="text-base font-medium text-rotary-ink">
           {selected.size} de {quantity} números elegidos
         </p>
       </div>
@@ -131,7 +131,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
       <div className="sticky bottom-0 bg-white border-t shadow-lg -mx-4 px-4 py-4 sm:rounded-t-xl sm:mx-0 flex items-center justify-between gap-4">
         <div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
-          <p className="font-medium text-rotary-ink">
+          <p className="text-base font-medium text-rotary-ink">
             {selected.size} de {quantity} números elegidos
           </p>
         </div>

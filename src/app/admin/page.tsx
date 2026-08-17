@@ -75,7 +75,7 @@ export default async function AdminPage() {
 
       <div className="flex flex-col gap-4">
         {sortedOrders.length === 0 && (
-          <p className="text-rotary-ink/60">Todavía no hay órdenes.</p>
+          <p className="text-base text-rotary-ink/60">Todavía no hay órdenes.</p>
         )}
         {sortedOrders.map((order) => (
           <OrderCard

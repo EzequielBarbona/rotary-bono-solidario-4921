@@ -31,6 +31,17 @@
   --color-rotary-cardinal: var(--color-rotary-cardinal);
   --color-rotary-ink: var(--color-rotary-ink);
   --font-sans: var(--font-open-sans);
+
+  /*
+   * Los titulos (text-xl y mas grandes) ya quedaron bien con el 120% del
+   * html de mas arriba. Estos cuatro tamanos son los que se usan para
+   * texto largo/de parrafo (nunca para titulos en este proyecto), asi que
+   * los agrandamos otro 15% aparte para que se lean mejor.
+   */
+  --text-xs: 0.8625rem;
+  --text-sm: 1.00625rem;
+  --text-base: 1.15rem;
+  --text-lg: 1.29375rem;
 }
 
 html {
