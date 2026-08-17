@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePurchase } from "@/lib/purchase-context";
 import { formatArs } from "@/lib/format";
-import { childrenProtected, pictogramScale } from "@/lib/impact";
+import { childrenProtected, pictogramScale, ticketsForChildren } from "@/lib/impact";
 import { PersonPictogram } from "@/components/PersonPictogram";
 
 const QUICK_OPTIONS = [1, 2, 5, 10, 20];
+const TARGET_KIDS_GOAL = 100;
 
 export function QuantityPicker({
   ticketPriceArs,
@@ -75,6 +76,14 @@ export function QuantityPicker({
           </button>
         ))}
       </div>
+
+      <button
+        type="button"
+        onClick={() => setValue(clamp(ticketsForChildren(TARGET_KIDS_GOAL, ticketPriceArs)))}
+        className="text-sm font-semibold text-rotary-teal-dark bg-rotary-teal/10 border border-rotary-teal/30 rounded-full px-4 py-2 hover:bg-rotary-teal/20 transition-colors"
+      >
+        Quiero ayudar a vacunar {TARGET_KIDS_GOAL} chicos
+      </button>
 
       <p className="text-lg text-rotary-ink">
         Total: <span className="font-extrabold">{formatArs(value * ticketPriceArs)}</span>

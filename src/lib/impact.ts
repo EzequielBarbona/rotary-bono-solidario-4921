@@ -12,6 +12,22 @@ export function childrenProtected(amountArs: number): number {
 }
 
 /**
+ * Inversa de childrenProtected: cuantos numeros hacen falta comprar para
+ * proteger a `targetKids` chicos. Arranca de una estimacion directa y suma
+ * de a uno hasta pasar el redondeo hacia abajo de childrenProtected.
+ */
+export function ticketsForChildren(targetKids: number, ticketPriceArs: number): number {
+  if (targetKids <= 0 || ticketPriceArs <= 0) return 1;
+  const perTicketFactor =
+    raffleConfig.gatesMatchMultiplier / (raffleConfig.usdArsRate * raffleConfig.costPerChildUsd);
+  let tickets = Math.max(1, Math.ceil(targetKids / (ticketPriceArs * perTicketFactor)));
+  while (childrenProtected(tickets * ticketPriceArs) < targetKids) {
+    tickets += 1;
+  }
+  return tickets;
+}
+
+/**
  * Para que el pictograma de personitas se vea bien (figuras reconocibles,
  * no una nube de puntos), agrupa varios chicos por figura cuando el total
  * es muy alto en vez de dibujar una figura por cada uno.
