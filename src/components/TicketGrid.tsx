@@ -75,6 +75,16 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
     router.push("/comprar/datos");
   }
 
+  function pickRandom() {
+    if (!quantity || !tickets) return;
+    const available = tickets
+      .filter((t) => t.status === "DISPONIBLE")
+      .map((t) => t.number)
+      .sort(() => Math.random() - 0.5);
+    setSelected(new Set(available.slice(0, quantity)));
+    setError(null);
+  }
+
   if (!quantity) {
     return null;
   }
@@ -84,6 +94,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
   }
 
   const canContinue = selected.size === quantity;
+  const availableCount = tickets.filter((t) => t.status === "DISPONIBLE").length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,6 +109,15 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
           {selected.size} de {quantity} números elegidos
         </p>
       </div>
+
+      <button
+        type="button"
+        onClick={pickRandom}
+        disabled={availableCount === 0}
+        className="self-start border-2 border-rotary-azure text-rotary-azure text-sm font-semibold rounded-full px-4 py-1.5 hover:bg-rotary-azure/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        Elegir al azar
+      </button>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(3.2rem,1fr))] gap-1.5">
         {Array.from({ length: totalTickets }, (_, i) => i + 1).map((n) => {
