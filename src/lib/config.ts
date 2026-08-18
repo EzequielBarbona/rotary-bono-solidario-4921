@@ -1,5 +1,10 @@
 export const raffleConfig = {
   title: process.env.RAFFLE_TITLE ?? "Bono Solidario PolioPlus - Distrito Rotary 4921",
+  // URL publica del sitio. La usa la metadata para armar las URLs
+  // absolutas que necesitan WhatsApp/Facebook para mostrar la tarjeta
+  // con la imagen de preview. Cambiar cuando el distrito tenga dominio
+  // propio (ej. https://bono.rotary4921.org).
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://rotary-bono-solidario-4921.vercel.app",
   totalTickets: Number(process.env.RAFFLE_TOTAL_TICKETS ?? 1000),
   ticketPriceArs: Number(process.env.RAFFLE_TICKET_PRICE_ARS ?? 0),
   drawDate: process.env.RAFFLE_DRAW_DATE ?? "2026-09-30",

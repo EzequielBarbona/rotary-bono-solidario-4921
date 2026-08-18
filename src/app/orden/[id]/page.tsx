@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { formatArs } from "@/lib/format";
+import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 
 type OrderStatus = "PENDIENTE" | "PAGADO" | "EXPIRADO" | "CANCELADO";
 type Order = {
@@ -138,6 +139,15 @@ export default function OrderPage({
           <p className="text-base font-bold text-red-800">
             La reserva expiró sin confirmarse el pago. Volvé a elegir tus números.
           </p>
+        </div>
+      )}
+
+      {(order.status === "PENDIENTE" || order.status === "PAGADO") && (
+        <div className="border-t border-rotary-ink/10 pt-6 flex flex-col items-center gap-3 text-center">
+          <p className="text-base text-rotary-ink/70">
+            Ya sos parte. Compartilo con tu club para que lleguemos a más chicos.
+          </p>
+          <ShareWhatsAppButton />
         </div>
       )}
     </main>

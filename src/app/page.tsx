@@ -6,6 +6,7 @@ import { formatDateArs } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { releaseExpiredHolds } from "@/lib/tickets";
 import { PersonPictogram } from "@/components/PersonPictogram";
+import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 
 // El contador de vacunas tiene que reflejar las ordenes en tiempo real,
 // no un valor congelado en el build.
@@ -227,6 +228,13 @@ export default async function Home() {
           >
             Comprar bono solidario
           </Link>
+
+          <div className="mt-8 pt-8 border-t border-rotary-ink/10 w-full flex flex-col items-center gap-3">
+            <p className="text-base text-rotary-ink/70">
+              Ayudanos a que llegue más lejos: compartilo con tu club.
+            </p>
+            <ShareWhatsAppButton />
+          </div>
         </div>
       </section>
     </main>
