@@ -108,6 +108,9 @@ export default async function Home() {
           <h2 className="text-3xl font-extrabold text-rotary-ink text-balance">
             Estadía de 5 noches para 2 personas
           </h2>
+          <p className="text-base text-rotary-ink/60 -mt-3">
+            Del 30 de noviembre al 4 de diciembre de 2026
+          </p>
           <p className="text-rotary-ink/70 text-lg">A elegir entre:</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <span className="bg-rotary-azure/10 text-rotary-azure font-bold px-5 py-2 rounded-full">
