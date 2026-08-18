@@ -16,8 +16,11 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 // Los assets no dependen del request, se leen una sola vez al cargar el modulo.
+// Es el mismo logo del sitio pero sin el margen transparente que trae el
+// original: ese margen ocupaba casi la mitad del alto y dejaba un hueco
+// muerto entre el logo y el titulo.
 const logoData = await readFile(
-  join(process.cwd(), "public/brand/rotary-endpolio-lockup-white.png"),
+  join(process.cwd(), "assets/lockup-white-og.png"),
   "base64"
 );
 const logoSrc = `data:image/png;base64,${logoData}`;
@@ -39,7 +42,9 @@ export default async function Image() {
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "56px 72px",
+          // Poco aire arriba y abajo: la tarjeta se ve chica en el chat,
+          // asi que el espacio va todo a que las letras sean grandes.
+          padding: "16px 40px 26px",
           backgroundImage: "linear-gradient(135deg, #0067c8 0%, #17458f 100%)",
           color: "white",
           fontFamily: "Open Sans",
@@ -70,22 +75,29 @@ export default async function Image() {
         />
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoSrc} width={470} alt="" style={{ marginBottom: 34 }} />
+        <img src={logoSrc} width={560} alt="" style={{ marginBottom: 26 }} />
 
-        <div style={{ fontSize: 62, fontWeight: 800, lineHeight: 1.1 }}>
+        <div style={{ fontSize: 88, fontWeight: 800, lineHeight: 1.05 }}>
           Bono Solidario PolioPlus
         </div>
 
+        {/*
+          El corte de linea del premio va a mano: dejarlo al wrap automatico
+          parte la frase en cualquier lado y se lee peor.
+        */}
         <div
           style={{
-            marginTop: 26,
-            fontSize: 38,
+            display: "flex",
+            flexDirection: "column",
+            marginTop: 16,
+            fontSize: 60,
             fontWeight: 800,
             color: "#f7a81b",
-            lineHeight: 1.25,
+            lineHeight: 1.15,
           }}
         >
-          Estadía de 5 noches para 2 en Bariloche o Las Grutas
+          <div>Estadía de 5 noches para 2 personas</div>
+          <div>en Bariloche o Las Grutas</div>
         </div>
 
         {/*
@@ -94,15 +106,15 @@ export default async function Image() {
         */}
         <div
           style={{
-            marginTop: 20,
-            fontSize: 27,
+            marginTop: 18,
+            fontSize: 40,
             fontWeight: 400,
-            color: "rgba(255,255,255,0.85)",
+            color: "rgba(255,255,255,0.9)",
           }}
         >
           {`Bonos de ${formatArs(raffleConfig.ticketPriceArs)} · Sorteo ${formatDateArs(
             raffleConfig.drawDate
-          )} · Lo recaudado va a la lucha contra la polio`}
+          )}`}
         </div>
       </div>
     ),
