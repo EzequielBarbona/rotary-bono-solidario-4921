@@ -56,7 +56,7 @@ export default async function Home() {
             Fecha del sorteo {formatDrawDate(raffleConfig.drawDate)}
           </p>
           <p className="text-base text-white/70 -mt-3">
-            Por la Lotería Rionegrina, sorteo nocturno
+            Por la Lotería Nacional, sorteo nocturno
           </p>
           <Link
             href="/comprar/cantidad"

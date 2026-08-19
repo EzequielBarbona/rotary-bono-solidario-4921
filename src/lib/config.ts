@@ -1,5 +1,5 @@
 export const raffleConfig = {
-  title: process.env.RAFFLE_TITLE ?? "Bono Solidario PolioPlus - Distrito Rotary 4921",
+  title: process.env.RAFFLE_TITLE ?? "Bono Solidario PolioPlus - Distrito 4921",
   // URL publica del sitio. La usa la metadata para armar las URLs
   // absolutas que necesitan WhatsApp/Facebook para mostrar la tarjeta
   // con la imagen de preview. Cambiar cuando el distrito tenga dominio
