@@ -55,6 +55,9 @@ export default async function Home() {
           <p className="text-lg text-white/90">
             Fecha del sorteo {formatDrawDate(raffleConfig.drawDate)}
           </p>
+          <p className="text-base text-white/70 -mt-3">
+            Por la Lotería Rionegrina, sorteo nocturno
+          </p>
           <Link
             href="/comprar/cantidad"
             className="mt-4 bg-rotary-gold text-rotary-ink font-bold text-lg px-10 py-4 rounded-full hover:bg-rotary-gold-dark transition-colors"

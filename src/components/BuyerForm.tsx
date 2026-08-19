@@ -124,7 +124,7 @@ export function BuyerForm({
           <span className="font-semibold">Alias:</span> {bankAlias}
         </p>
         <p>
-          <span className="font-semibold">CBU:</span> {bankCbu}
+          <span className="font-semibold">CBU/CVU:</span> {bankCbu}
         </p>
         <p className="text-rotary-ink/70 mt-1">
           Después subí la captura de esa transferencia en el formulario.

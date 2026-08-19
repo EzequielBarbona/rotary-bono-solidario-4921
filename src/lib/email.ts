@@ -24,7 +24,7 @@ export async function sendConfirmationEmail(input: ConfirmationEmailInput) {
     `Tu compra fue confirmada. Número de orden: ${orderId}.`,
     `Tus números: ${numbersText}`,
     `Monto total: $${totalAmount} ARS`,
-    `Fecha del sorteo: ${formatDrawDate(raffleConfig.drawDate)}`,
+    `Fecha del sorteo: ${formatDrawDate(raffleConfig.drawDate)} (por la Lotería Rionegrina, sorteo nocturno)`,
     "",
     "Gracias por colaborar con PolioPlus - Rotary Distrito 4921.",
   ].join("\n");
