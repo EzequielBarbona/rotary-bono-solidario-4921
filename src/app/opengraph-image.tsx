@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { raffleConfig } from "@/lib/config";
-import { formatArs, formatDateArs } from "@/lib/format";
+import { formatArs, formatDrawDate } from "@/lib/format";
 
 /*
  * Tarjeta que muestran WhatsApp, Facebook e Instagram cuando alguien
@@ -112,7 +112,7 @@ export default async function Image() {
             color: "rgba(255,255,255,0.9)",
           }}
         >
-          {`Bonos de ${formatArs(raffleConfig.ticketPriceArs)} · Sorteo ${formatDateArs(
+          {`Bonos de ${formatArs(raffleConfig.ticketPriceArs)} · Sorteo ${formatDrawDate(
             raffleConfig.drawDate
           )}`}
         </div>

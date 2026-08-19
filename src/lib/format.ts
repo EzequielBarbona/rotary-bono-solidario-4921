@@ -12,3 +12,13 @@ export function formatDateArs(isoDate: string) {
   if (!year || !month || !day) return isoDate;
   return `${day}/${month}/${year}`;
 }
+
+/**
+ * La fecha del sorteo se muestra como "a definir" mientras el subcomite
+ * no la haya cerrado. Cuando este definida se carga en RAFFLE_DRAW_DATE
+ * y aparece sola en la pagina, el mail y la tarjeta de WhatsApp.
+ */
+export function formatDrawDate(isoDate: string) {
+  if (!isoDate.trim()) return "a definir";
+  return formatDateArs(isoDate);
+}

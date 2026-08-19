@@ -7,7 +7,7 @@ export const raffleConfig = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://rotary-bono-solidario-4921.vercel.app",
   totalTickets: Number(process.env.RAFFLE_TOTAL_TICKETS ?? 1000),
   ticketPriceArs: Number(process.env.RAFFLE_TICKET_PRICE_ARS ?? 0),
-  drawDate: process.env.RAFFLE_DRAW_DATE ?? "2026-09-30",
+  drawDate: process.env.RAFFLE_DRAW_DATE ?? "",
   holdMinutes: Number(process.env.RAFFLE_HOLD_MINUTES ?? 72 * 60),
   maxTicketsPerOrder: 50,
   maxReceiptSizeBytes: 8 * 1024 * 1024,

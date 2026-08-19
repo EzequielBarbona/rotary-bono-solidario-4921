@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { raffleConfig } from "@/lib/config";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
-import { formatDateArs } from "@/lib/format";
+import { formatDrawDate } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { releaseExpiredHolds } from "@/lib/tickets";
 import { PersonPictogram } from "@/components/PersonPictogram";
@@ -53,7 +53,7 @@ export default async function Home() {
             {raffleConfig.title}
           </h1>
           <p className="text-lg text-white/90">
-            Fecha del sorteo {formatDateArs(raffleConfig.drawDate)}
+            Fecha del sorteo {formatDrawDate(raffleConfig.drawDate)}
           </p>
           <Link
             href="/comprar/cantidad"

@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { raffleConfig } from "@/lib/config";
-import { formatDateArs } from "@/lib/format";
+import { formatDrawDate } from "@/lib/format";
 
 type ConfirmationEmailInput = {
   buyerName: string;
@@ -24,7 +24,7 @@ export async function sendConfirmationEmail(input: ConfirmationEmailInput) {
     `Tu compra fue confirmada. Número de orden: ${orderId}.`,
     `Tus números: ${numbersText}`,
     `Monto total: $${totalAmount} ARS`,
-    `Fecha del sorteo: ${formatDateArs(raffleConfig.drawDate)}`,
+    `Fecha del sorteo: ${formatDrawDate(raffleConfig.drawDate)}`,
     "",
     "Gracias por colaborar con PolioPlus - Rotary Distrito 4921.",
   ].join("\n");
