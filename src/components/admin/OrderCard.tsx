@@ -30,6 +30,7 @@ export function OrderCard({ order }: { order: AdminOrder }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelText, setCancelText] = useState("");
@@ -48,6 +49,11 @@ export function OrderCard({ order }: { order: AdminOrder }) {
       if (!res.ok) {
         setError(data?.error ?? "No se pudo confirmar el pago.");
         return;
+      }
+      if (data?.emailSent === false) {
+        setEmailWarning(
+          "El pago quedó confirmado, pero no se pudo enviar el mail. Avisale vos a la persona."
+        );
       }
       router.refresh();
     } catch {
@@ -150,6 +156,9 @@ export function OrderCard({ order }: { order: AdminOrder }) {
                 </button>
               )}
               {error && <p className="text-red-600 text-sm">{error}</p>}
+              {emailWarning && (
+                <p className="text-amber-700 text-sm font-medium">{emailWarning}</p>
+              )}
             </div>
 
             {showCancelConfirm && (

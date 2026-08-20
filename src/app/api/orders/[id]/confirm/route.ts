@@ -47,13 +47,23 @@ export async function POST(
     }),
   ]);
 
-  await sendConfirmationEmail({
-    buyerName: order.buyerName,
-    buyerEmail: order.buyerEmail,
-    ticketNumbers: order.tickets.map((t) => t.number),
-    totalAmount: order.totalAmount,
-    orderId: order.id,
-  });
+  // El pago ya quedo confirmado arriba. Si el mail falla (clave de Resend
+  // vencida, dominio sin verificar, Resend caido) no podemos tirar la
+  // request abajo: la plata entro y la orden esta paga igual. Avisamos en
+  // la respuesta para que el admin sepa que tiene que escribirle a mano.
+  let emailSent = false;
+  try {
+    const result = await sendConfirmationEmail({
+      buyerName: order.buyerName,
+      buyerEmail: order.buyerEmail,
+      ticketNumbers: order.tickets.map((t) => t.number),
+      totalAmount: order.totalAmount,
+      orderId: order.id,
+    });
+    emailSent = result.sent;
+  } catch (err) {
+    console.error("[confirm] no se pudo enviar el mail de confirmacion", err);
+  }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, emailSent });
 }
