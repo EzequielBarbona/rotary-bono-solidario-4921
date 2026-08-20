@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePurchase } from "@/lib/purchase-context";
 import { formatArs } from "@/lib/format";
+import { CopyButton } from "@/components/CopyButton";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
 import { PersonPictogram } from "@/components/PersonPictogram";
 
@@ -115,16 +116,23 @@ export function BuyerForm({
         )}
       </div>
 
-      <div className="border border-rotary-gold/40 bg-rotary-gold/10 rounded-lg p-4 flex flex-col gap-1 text-rotary-ink text-sm">
+      <div className="border border-rotary-gold/40 bg-rotary-gold/10 rounded-lg p-4 flex flex-col gap-1.5 text-rotary-ink text-sm">
         <p className="font-bold">Transferí el total a esta cuenta</p>
         <p>
           <span className="font-semibold">Titular:</span> {bankAccountHolder}
         </p>
         <p>
           <span className="font-semibold">Alias:</span> {bankAlias}
+          <CopyButton value={bankAlias} label="Copiar alias" />
+        </p>
+        <p className="break-all">
+          <span className="font-semibold">CBU/CVU:</span> {bankCbu}
+          <CopyButton value={bankCbu} label="Copiar CBU/CVU" />
         </p>
         <p>
-          <span className="font-semibold">CBU/CVU:</span> {bankCbu}
+          <span className="font-semibold">Monto:</span> {formatArs(total)}
+          {/* Se copia el numero pelado: es lo que se pega en el home banking. */}
+          <CopyButton value={String(total)} label="Copiar monto" />
         </p>
         <p className="text-rotary-ink/70 mt-1">
           Después subí la captura de esa transferencia en el formulario.
