@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { releaseExpiredHolds } from "@/lib/tickets";
 
 export async function GET(
   _request: Request,
@@ -11,8 +10,6 @@ export async function GET(
   if (!Number.isInteger(orderId)) {
     return NextResponse.json({ error: "Orden inválida." }, { status: 400 });
   }
-
-  await releaseExpiredHolds();
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },

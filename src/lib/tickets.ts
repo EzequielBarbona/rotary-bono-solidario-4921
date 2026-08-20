@@ -1,38 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { raffleConfig } from "@/lib/config";
 
-/**
- * Libera reservas vencidas (nadie completo el pago a tiempo).
- * Se llama de forma "perezosa" antes de leer/reservar en vez de correr un cron aparte.
+/*
+ * Las reservas no vencen solas. Antes se liberaban a las 72 h, pero eso
+ * soltaba numeros de gente que si habia pagado y todavia no habiamos
+ * confirmado. Ahora una reserva solo se libera si un admin la da de baja
+ * desde el panel.
  */
-export async function releaseExpiredHolds() {
-  const cutoff = new Date(Date.now() - raffleConfig.holdMinutes * 60_000);
-
-  const expiredOrders = await prisma.order.findMany({
-    where: { status: "PENDIENTE", expiresAt: { lt: new Date() } },
-    select: { id: true },
-  });
-  if (expiredOrders.length === 0) return;
-
-  const expiredIds = expiredOrders.map((o) => o.id);
-
-  await prisma.$transaction([
-    prisma.ticket.updateMany({
-      where: { orderId: { in: expiredIds }, status: "RESERVADO" },
-      data: { status: "DISPONIBLE", orderId: null, reservedAt: null },
-    }),
-    prisma.order.updateMany({
-      where: { id: { in: expiredIds } },
-      data: { status: "EXPIRADO" },
-    }),
-  ]);
-
-  // Referencia a cutoff para dejar explicito el criterio de expiracion usado arriba.
-  void cutoff;
-}
 
 export async function getTicketGrid() {
-  await releaseExpiredHolds();
   const tickets = await prisma.ticket.findMany({
     orderBy: { number: "asc" },
     select: { number: true, status: true },
@@ -64,8 +40,6 @@ export class ReservationConflictError extends Error {
  * cobra ni reserva nada a medias.
  */
 export async function reserveTickets(input: ReserveInput) {
-  await releaseExpiredHolds();
-
   const {
     numbers,
     buyerName,

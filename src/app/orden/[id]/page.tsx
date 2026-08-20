@@ -12,38 +12,8 @@ type Order = {
   ticketCount: number;
   totalAmount: number;
   status: OrderStatus;
-  expiresAt: string;
   tickets: { number: number }[];
 };
-
-function useCountdown(target: string | null) {
-  const [remainingMs, setRemainingMs] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!target) return;
-    const targetTime = new Date(target).getTime();
-    const tick = () => setRemainingMs(Math.max(0, targetTime - Date.now()));
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [target]);
-
-  return remainingMs;
-}
-
-/**
- * Cuenta regresiva de la reserva en horas:minutos:segundos. Las horas no
- * se cortan en 24: la reserva dura 3 dias, asi que arranca en 71 y pico.
- * Antes esto mostraba solo minutos y segundos y quedaba "4319:41".
- */
-function formatRemaining(ms: number) {
-  const totalSegundos = Math.max(0, Math.floor(ms / 1000));
-  const horas = Math.floor(totalSegundos / 3600);
-  const minutos = Math.floor((totalSegundos % 3600) / 60);
-  const segundos = totalSegundos % 60;
-  const dosDigitos = (n: number) => n.toString().padStart(2, "0");
-  return `${horas}:${dosDigitos(minutos)}:${dosDigitos(segundos)}`;
-}
 
 export default function OrderPage({
   params,
@@ -75,8 +45,6 @@ export default function OrderPage({
       clearInterval(interval);
     };
   }, [id]);
-
-  const remainingMs = useCountdown(order?.status === "PENDIENTE" ? order.expiresAt : null);
 
   if (notFound) {
     return (
@@ -124,15 +92,10 @@ export default function OrderPage({
             transferencia te vamos a enviar un mensaje por WhatsApp y tu reserva
             queda confirmada.
           </p>
-          {remainingMs !== null && (
-            <p className="text-sm text-rotary-ink/80">
-              Tu reserva se libera en{" "}
-              <span className="font-mono font-semibold">
-                {formatRemaining(remainingMs)}
-              </span>{" "}
-              si no llegamos a confirmar el pago.
-            </p>
-          )}
+          <p className="text-sm text-rotary-ink/80">
+            Tus números quedan reservados a tu nombre hasta que confirmemos el
+            pago. No se liberan solos.
+          </p>
         </div>
       )}
 

@@ -4,7 +4,6 @@ import { raffleConfig } from "@/lib/config";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
 import { formatDrawDate } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
-import { releaseExpiredHolds } from "@/lib/tickets";
 import { PersonPictogram } from "@/components/PersonPictogram";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 
@@ -15,9 +14,8 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   // Cuenta reservas (PENDIENTE) y pagos confirmados (PAGADO): las figuras
   // se colorean apenas alguien reserva, no recien cuando se confirma el
-  // pago. Liberamos las reservas vencidas antes de contar para que el
-  // numero no incluya gente que reservo y nunca volvio a pagar.
-  await releaseExpiredHolds();
+  // pago. Las reservas ya no vencen solas, asi que si alguien reserva y
+  // nunca paga el numero queda contado hasta que un admin lo de de baja.
   const { _sum } = await prisma.order.aggregate({
     where: { status: { in: ["PENDIENTE", "PAGADO"] } },
     _sum: { totalAmount: true },

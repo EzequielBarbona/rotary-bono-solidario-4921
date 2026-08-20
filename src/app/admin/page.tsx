@@ -93,6 +93,7 @@ export default async function AdminPage() {
               totalAmount: order.totalAmount,
               status: order.status,
               createdAt: order.createdAt.toISOString(),
+              confirmationSentAt: order.confirmationSentAt?.toISOString() ?? null,
               expiresAt: order.expiresAt.toISOString(),
               numbers: order.tickets.map((t) => t.number),
             }}

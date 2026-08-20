@@ -18,8 +18,19 @@ type AdminOrder = {
   status: "PENDIENTE" | "PAGADO" | "EXPIRADO" | "CANCELADO";
   createdAt: string;
   expiresAt: string;
+  confirmationSentAt: string | null;
   numbers: number[];
 };
+
+/** Fecha y hora corta, para dejar constancia de cuando se aviso. */
+function formatDateTimeArs(iso: string) {
+  return new Date(iso).toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 const STATUS_STYLES: Record<AdminOrder["status"], string> = {
   PENDIENTE: "bg-rotary-gold/15 text-rotary-gold-dark border-rotary-gold/40",
@@ -42,6 +53,8 @@ export function OrderCard({
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelText, setCancelText] = useState("");
+  const [confirmationSentAt, setConfirmationSentAt] = useState(order.confirmationSentAt);
+  const [markingSent, setMarkingSent] = useState(false);
 
   const numbersText = [...order.numbers]
     .sort((a, b) => a - b)
@@ -64,6 +77,9 @@ export function OrderCard({
       `Podés ver tu orden acá: ${window.location.origin}/orden/${order.id}`,
       "",
       "¡Gracias por colaborar para erradicar la polio!",
+      "",
+      "¿Nos das una mano para que llegue más lejos? Compartí el bono con tu gente:",
+      `${window.location.origin}/`,
     ].join("\n");
     window.open(
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`,
@@ -92,6 +108,24 @@ export function OrderCard({
       setError("Error de conexión. Intentá de nuevo.");
     } finally {
       setConfirming(false);
+    }
+  }
+
+  async function toggleConfirmationSent() {
+    setMarkingSent(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/notified`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "No se pudo marcar el aviso.");
+        return;
+      }
+      setConfirmationSentAt(data.confirmationSentAt);
+    } catch {
+      setError("Error de conexión. Intentá de nuevo.");
+    } finally {
+      setMarkingSent(false);
     }
   }
 
@@ -166,7 +200,7 @@ export function OrderCard({
         </p>
 
         {order.status === "PAGADO" && (
-          <div className="mt-2">
+          <div className="mt-2 flex flex-col gap-2 items-start">
             {whatsappNumber ? (
               <button
                 type="button"
@@ -179,6 +213,36 @@ export function OrderCard({
             ) : (
               <p className="text-sm text-amber-700">
                 El teléfono cargado no parece un número válido, hay que avisar a mano.
+              </p>
+            )}
+
+            {/* Checklist manual: el aviso se manda a mano, esto solo deja
+                constancia de que ya se hizo para no duplicarlo ni saltearlo. */}
+            <button
+              type="button"
+              onClick={toggleConfirmationSent}
+              disabled={markingSent}
+              className={`inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-2 border-2 transition-colors disabled:opacity-50 ${
+                confirmationSentAt
+                  ? "border-rotary-teal bg-rotary-teal/10 text-rotary-teal-dark"
+                  : "border-rotary-ink/25 text-rotary-ink/70 hover:border-rotary-ink/50"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[11px] leading-none ${
+                  confirmationSentAt
+                    ? "border-rotary-teal bg-rotary-teal text-white"
+                    : "border-rotary-ink/40"
+                }`}
+              >
+                {confirmationSentAt ? "✓" : ""}
+              </span>
+              {confirmationSentAt ? "Confirmación avisada" : "Marcar aviso enviado"}
+            </button>
+            {confirmationSentAt && (
+              <p className="text-xs text-rotary-ink/50">
+                Avisado el {formatDateTimeArs(confirmationSentAt)}
               </p>
             )}
           </div>

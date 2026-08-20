@@ -45,6 +45,11 @@ model Order {
   receiptImage     Bytes
   receiptMimeType  String
   createdAt        DateTime    @default(now())
+  // Se sigue guardando como referencia de cuando se hizo la reserva, pero
+  // ya no vence sola: una reserva solo se libera si un admin la da de baja.
   expiresAt        DateTime
+  // Cuando un admin marca que ya le aviso al comprador que el pago entro.
+  // Es un checklist manual: el aviso se manda por WhatsApp a mano.
+  confirmationSentAt DateTime?
   tickets          Ticket[]
 }
