@@ -67,9 +67,19 @@ export default async function VentasPorSemanaPage() {
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-extrabold text-rotary-ink">Ventas por semana</h1>
-        <Link href="/admin" className="text-sm text-rotary-azure hover:underline">
-          ‹ Volver al panel
-        </Link>
+        <div className="flex items-center gap-4">
+          {/* Link comun y no fetch: la descarga la maneja el navegador y
+              viaja con la cookie de admin. */}
+          <a
+            href="/api/admin/ventas/export"
+            className="inline-flex items-center gap-2 bg-rotary-azure text-white text-sm font-bold px-4 py-2 rounded-full hover:bg-rotary-azure-dark transition-colors"
+          >
+            Descargar en Excel
+          </a>
+          <Link href="/admin" className="text-sm text-rotary-azure hover:underline">
+            ‹ Volver al panel
+          </Link>
+        </div>
       </div>
 
       <p className="text-sm text-rotary-ink/70">
@@ -145,7 +155,9 @@ export default async function VentasPorSemanaPage() {
 
       <p className="text-xs text-rotary-ink/50">
         La semana en curso todavía se está moviendo: recién queda cerrada el
-        domingo a la noche.
+        domingo a la noche. El Excel trae todas las órdenes con los datos de
+        cada comprador, más este resumen en una segunda hoja; las imágenes de
+        los comprobantes no entran en la planilla.
       </p>
     </main>
   );
