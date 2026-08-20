@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { isAdminSessionActive } from "@/lib/admin-auth";
-import { formatArs } from "@/lib/format";
+import { formatArs, formatDrawDate } from "@/lib/format";
+import { raffleConfig } from "@/lib/config";
 import { startOfArtDay, startOfArtWeek } from "@/lib/dates";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { LogoutButton } from "@/components/admin/LogoutButton";
@@ -80,6 +81,7 @@ export default async function AdminPage() {
         {sortedOrders.map((order) => (
           <OrderCard
             key={order.id}
+            drawDateLabel={formatDrawDate(raffleConfig.drawDate)}
             order={{
               id: order.id,
               buyerName: order.buyerName,

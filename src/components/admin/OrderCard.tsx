@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatArs } from "@/lib/format";
+import { toWhatsAppNumber } from "@/lib/phone";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 type AdminOrder = {
   id: number;
@@ -26,7 +28,13 @@ const STATUS_STYLES: Record<AdminOrder["status"], string> = {
   CANCELADO: "bg-rotary-ink/10 text-rotary-ink/60 border-rotary-ink/20",
 };
 
-export function OrderCard({ order }: { order: AdminOrder }) {
+export function OrderCard({
+  order,
+  drawDateLabel,
+}: {
+  order: AdminOrder;
+  drawDateLabel: string;
+}) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +47,30 @@ export function OrderCard({ order }: { order: AdminOrder }) {
     .sort((a, b) => a - b)
     .map((n) => n.toString().padStart(4, "0"))
     .join(", ");
+
+  // Sin dominio propio no podemos mandar mails, y el canal real del
+  // distrito es WhatsApp igual. Esto le deja el mensaje escrito al admin
+  // para que solo tenga que apretar enviar.
+  const whatsappNumber = toWhatsAppNumber(order.buyerPhone);
+
+  function avisarPorWhatsApp() {
+    const mensaje = [
+      `Hola ${order.buyerName}, te confirmamos el pago del Bono Solidario PolioPlus del Distrito 4921.`,
+      "",
+      `Tus números: ${numbersText}`,
+      `Total: ${formatArs(order.totalAmount)}`,
+      "",
+      `El sorteo es el ${drawDateLabel}, por la Lotería Nacional, sorteo nocturno.`,
+      `Podés ver tu orden acá: ${window.location.origin}/orden/${order.id}`,
+      "",
+      "¡Gracias por colaborar para erradicar la polio!",
+    ].join("\n");
+    window.open(
+      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
 
   async function handleConfirm() {
     setConfirming(true);
@@ -132,6 +164,25 @@ export function OrderCard({ order }: { order: AdminOrder }) {
         <p>
           <span className="font-semibold">Total:</span> {formatArs(order.totalAmount)}
         </p>
+
+        {order.status === "PAGADO" && (
+          <div className="mt-2">
+            {whatsappNumber ? (
+              <button
+                type="button"
+                onClick={avisarPorWhatsApp}
+                className="inline-flex items-center gap-2 bg-[#25d366] text-white text-sm font-bold px-4 py-2 rounded-full hover:bg-[#1eb455] transition-colors"
+              >
+                <WhatsAppIcon />
+                Avisar por WhatsApp
+              </button>
+            ) : (
+              <p className="text-sm text-amber-700">
+                El teléfono cargado no parece un número válido, hay que avisar a mano.
+              </p>
+            )}
+          </div>
+        )}
 
         {(order.status === "PENDIENTE" || canCancel) && (
           <div className="mt-2 flex flex-col gap-2">
