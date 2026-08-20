@@ -25,8 +25,6 @@ export default async function VentasPorClubPage() {
   const totalReservado = filas.reduce((s, f) => s + f.reservado, 0);
   const totalConfirmado = filas.reduce((s, f) => s + f.confirmado, 0);
 
-  let posicion = 0;
-
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -77,16 +75,15 @@ export default async function VentasPorClubPage() {
               <tbody>
                 {filas.map((fila) => {
                   const grupo = esGrupoAgrupado(fila.club);
-                  if (!grupo) posicion += 1;
                   return (
                     <tr
                       key={fila.club}
                       className={`border-b border-rotary-ink/10 ${
                         grupo ? "text-rotary-ink/60 italic" : ""
-                      } ${!grupo && posicion === 1 ? "bg-rotary-gold/10" : ""}`}
+                      } ${fila.puesto === 1 ? "bg-rotary-gold/10" : ""}`}
                     >
                       <td className="py-2 pr-3 text-right tabular-nums text-rotary-ink/50">
-                        {grupo ? "" : posicion}
+                        {fila.puesto ?? ""}
                       </td>
                       <td className="py-2 pr-4 text-rotary-ink">{fila.club}</td>
                       <td className="py-2 pr-4 text-right tabular-nums font-medium">

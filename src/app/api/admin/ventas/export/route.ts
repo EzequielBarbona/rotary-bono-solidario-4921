@@ -2,7 +2,7 @@ import ExcelJS from "exceljs";
 import { prisma } from "@/lib/prisma";
 import { isAdminAuthorized } from "@/lib/admin-auth";
 import { ART_WEEK_MS, formatArtDayMonth, startOfArtWeek } from "@/lib/dates";
-import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
+import { rankingPorClub } from "@/lib/ranking";
 
 /**
  * Descarga el padron completo de ventas en Excel.
@@ -127,12 +127,9 @@ export async function GET(request: Request) {
     { header: "Confirmado", key: "confirmado", width: 14 },
   ];
 
-  let puesto = 0;
   for (const fila of await rankingPorClub()) {
-    const grupo = esGrupoAgrupado(fila.club);
-    if (!grupo) puesto += 1;
     porClub.addRow({
-      puesto: grupo ? "" : puesto,
+      puesto: fila.puesto ?? "",
       club: fila.club,
       bonos: fila.bonos,
       reservado: fila.reservado,

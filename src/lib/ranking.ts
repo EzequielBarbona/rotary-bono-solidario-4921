@@ -6,6 +6,8 @@ export type FilaClub = {
   bonos: number;
   reservado: number;
   confirmado: number;
+  /** Puesto en el ranking, o null para las filas que no compiten. */
+  puesto: number | null;
 };
 
 /** Los dos cajones que no son clubes del 4921 y por eso no compiten. */
@@ -31,18 +33,42 @@ export async function rankingPorClub(): Promise<FilaClub[]> {
   const porClub = new Map<string, FilaClub>();
   for (const orden of ordenes) {
     const club = grupoDeRanking(orden.buyerClub);
-    const fila = porClub.get(club) ?? { club, bonos: 0, reservado: 0, confirmado: 0 };
+    const fila = porClub.get(club) ?? {
+      club,
+      bonos: 0,
+      reservado: 0,
+      confirmado: 0,
+      puesto: null,
+    };
     fila.bonos += orden.ticketCount;
     fila.reservado += orden.totalAmount;
     if (orden.status === "PAGADO") fila.confirmado += orden.totalAmount;
     porClub.set(club, fila);
   }
 
-  return [...porClub.values()].sort((a, b) => {
+  const filas = [...porClub.values()].sort((a, b) => {
     const grupoA = esGrupoAgrupado(a.club);
     const grupoB = esGrupoAgrupado(b.club);
     if (grupoA !== grupoB) return grupoA ? 1 : -1;
     if (b.bonos !== a.bonos) return b.bonos - a.bonos;
     return a.club.localeCompare(b.club, "es");
   });
+
+  // Puesto deportivo: dos clubes empatados comparten el puesto y el que
+  // sigue saltea los lugares ocupados (1, 2, 2, 4). Vender lo mismo que
+  // otro no puede costarte una posicion.
+  let puesto = 0;
+  let bonosDelPuesto: number | null = null;
+  let contados = 0;
+  for (const fila of filas) {
+    if (esGrupoAgrupado(fila.club)) continue;
+    contados += 1;
+    if (fila.bonos !== bonosDelPuesto) {
+      puesto = contados;
+      bonosDelPuesto = fila.bonos;
+    }
+    fila.puesto = puesto;
+  }
+
+  return filas;
 }

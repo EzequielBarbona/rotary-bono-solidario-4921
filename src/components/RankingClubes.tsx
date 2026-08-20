@@ -14,7 +14,14 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
 
   if (clubes.length === 0) return null;
 
-  const podio = clubes.slice(0, TOPE);
+  // Cortar en el puesto 10 a secas puede dejar afuera a un club empatado
+  // con el ultimo que si entra, y eso se lee como arbitrario: si hay
+  // empate en el limite, entran todos los del mismo puesto.
+  let corte = Math.min(TOPE, clubes.length);
+  while (corte < clubes.length && clubes[corte].puesto === clubes[corte - 1].puesto) {
+    corte += 1;
+  }
+  const podio = clubes.slice(0, corte);
   const restantes = clubes.length - podio.length;
 
   // Fondo apenas tenido: abajo viene otra seccion blanca y si las dos
@@ -30,19 +37,21 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
         </h2>
 
         <ol className="w-full flex flex-col mt-2">
-          {podio.map((fila, i) => (
+          {podio.map((fila) => (
             <li
               key={fila.club}
               className={`flex items-center gap-4 py-3 border-b border-rotary-ink/10 ${
-                i === 0 ? "bg-rotary-gold/10 rounded-lg px-3" : "px-3"
+                fila.puesto === 1 ? "bg-rotary-gold/10 rounded-lg px-3" : "px-3"
               }`}
             >
               <span
                 className={`w-8 shrink-0 text-right tabular-nums font-extrabold ${
-                  i === 0 ? "text-rotary-gold-dark text-xl" : "text-rotary-ink/40"
+                  fila.puesto === 1
+                    ? "text-rotary-gold-dark text-xl"
+                    : "text-rotary-ink/40"
                 }`}
               >
-                {i + 1}
+                {fila.puesto}
               </span>
               <span className="flex-1 text-left text-lg text-rotary-ink">
                 {fila.club}
