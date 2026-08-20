@@ -31,6 +31,20 @@ function useCountdown(target: string | null) {
   return remainingMs;
 }
 
+/**
+ * Cuenta regresiva de la reserva en horas:minutos:segundos. Las horas no
+ * se cortan en 24: la reserva dura 3 dias, asi que arranca en 71 y pico.
+ * Antes esto mostraba solo minutos y segundos y quedaba "4319:41".
+ */
+function formatRemaining(ms: number) {
+  const totalSegundos = Math.max(0, Math.floor(ms / 1000));
+  const horas = Math.floor(totalSegundos / 3600);
+  const minutos = Math.floor((totalSegundos % 3600) / 60);
+  const segundos = totalSegundos % 60;
+  const dosDigitos = (n: number) => n.toString().padStart(2, "0");
+  return `${horas}:${dosDigitos(minutos)}:${dosDigitos(segundos)}`;
+}
+
 export default function OrderPage({
   params,
 }: {
@@ -102,25 +116,21 @@ export default function OrderPage({
 
       {order.status === "PENDIENTE" && (
         <div className="border border-rotary-gold/40 bg-rotary-gold/10 rounded-lg p-4 flex flex-col gap-2">
-          <p className="text-base font-bold text-rotary-ink">Pago pendiente</p>
+          <p className="text-base font-bold text-rotary-ink">
+            Estamos verificando tu pago
+          </p>
           <p className="text-sm text-rotary-ink/80">
-            El pago online todavía no está conectado. El subcomité se va a
-            contactar para coordinar el pago y confirmar tu reserva.
+            Recibimos tu comprobante. Cuando el subcomité confirme que llegó la
+            transferencia te vamos a enviar un mensaje por WhatsApp y tu reserva
+            queda confirmada.
           </p>
           {remainingMs !== null && (
             <p className="text-sm text-rotary-ink/80">
               Tu reserva se libera en{" "}
-              {remainingMs > 0 ? (
-                <span className="font-mono font-semibold">
-                  {Math.floor(remainingMs / 60_000)}:
-                  {Math.floor((remainingMs % 60_000) / 1000)
-                    .toString()
-                    .padStart(2, "0")}
-                </span>
-              ) : (
-                "menos de un minuto"
-              )}
-              {" "}si no se confirma el pago.
+              <span className="font-mono font-semibold">
+                {formatRemaining(remainingMs)}
+              </span>{" "}
+              si no llegamos a confirmar el pago.
             </p>
           )}
         </div>
@@ -129,7 +139,8 @@ export default function OrderPage({
       {order.status === "PAGADO" && (
         <div className="border border-rotary-teal/30 bg-rotary-teal/10 rounded-lg p-4">
           <p className="text-base font-bold text-rotary-teal-dark">
-            Pago confirmado. Te enviamos un email con el detalle.
+            ¡Pago confirmado! Tus números ya quedaron asegurados para el
+            sorteo.
           </p>
         </div>
       )}
