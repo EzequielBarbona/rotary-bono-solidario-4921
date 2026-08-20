@@ -16,3 +16,14 @@ export function startOfArtWeek(date: Date): Date {
   const daysSinceMonday = (day + 6) % 7;
   return startOfArtDay(date, daysSinceMonday);
 }
+
+/** Una semana en milisegundos. Argentina no tiene DST, asi que siempre son 7 dias exactos. */
+export const ART_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Formatea una fecha como "dd/mm" en horario argentino. */
+export function formatArtDayMonth(date: Date): string {
+  const shifted = new Date(date.getTime() + ART_OFFSET_MS);
+  const dia = String(shifted.getUTCDate()).padStart(2, "0");
+  const mes = String(shifted.getUTCMonth() + 1).padStart(2, "0");
+  return `${dia}/${mes}`;
+}

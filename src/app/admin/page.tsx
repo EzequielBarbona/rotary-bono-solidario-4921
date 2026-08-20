@@ -71,7 +71,13 @@ export default async function AdminPage() {
         <Stat label="Transferido esta semana" value={formatArs(weekTotal._sum?.totalAmount ?? 0)} />
       </div>
       <p className="text-xs text-rotary-ink/50 -mt-3">
-        Incluye reservas todavía no confirmadas por un admin, para poder cruzarlo contra el resumen bancario del día.
+        Incluye reservas todavía no confirmadas por un admin, para poder cruzarlo
+        contra el resumen bancario del día. Estos dos números se mueven todo el
+        tiempo:{" "}
+        <Link href="/admin/ventas" className="text-rotary-azure hover:underline">
+          mirá las ventas semana por semana
+        </Link>{" "}
+        para ver la serie cerrada.
       </p>
 
       <div className="flex flex-col gap-4">
