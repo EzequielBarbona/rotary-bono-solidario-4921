@@ -76,6 +76,9 @@ export default async function VentasPorSemanaPage() {
           >
             Descargar en Excel
           </a>
+          <Link href="/admin/clubes" className="text-sm text-rotary-azure hover:underline">
+            Ventas por club
+          </Link>
           <Link href="/admin" className="text-sm text-rotary-azure hover:underline">
             ‹ Volver al panel
           </Link>

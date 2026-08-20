@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { prisma } from "@/lib/prisma";
 import { isAdminAuthorized } from "@/lib/admin-auth";
 import { ART_WEEK_MS, formatArtDayMonth, startOfArtWeek } from "@/lib/dates";
+import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
 
 /**
  * Descarga el padron completo de ventas en Excel.
@@ -116,7 +117,30 @@ export async function GET(request: Request) {
     }
   }
 
-  for (const h of [hoja, resumen]) {
+  // ---------- Hoja 3: el mismo ranking que muestra /admin/clubes ----------
+  const porClub = libro.addWorksheet("Por club");
+  porClub.columns = [
+    { header: "Puesto", key: "puesto", width: 8 },
+    { header: "Club", key: "club", width: 34 },
+    { header: "Bonos", key: "bonos", width: 8 },
+    { header: "Reservado", key: "reservado", width: 14 },
+    { header: "Confirmado", key: "confirmado", width: 14 },
+  ];
+
+  let puesto = 0;
+  for (const fila of await rankingPorClub()) {
+    const grupo = esGrupoAgrupado(fila.club);
+    if (!grupo) puesto += 1;
+    porClub.addRow({
+      puesto: grupo ? "" : puesto,
+      club: fila.club,
+      bonos: fila.bonos,
+      reservado: fila.reservado,
+      confirmado: fila.confirmado,
+    });
+  }
+
+  for (const h of [hoja, resumen, porClub]) {
     h.getRow(1).font = { bold: true };
     h.views = [{ state: "frozen", ySplit: 1 }];
   }
@@ -124,6 +148,9 @@ export async function GET(request: Request) {
   hoja.getColumn("monto").numFmt = '"$" #,##0';
   for (const key of ["reservado", "confirmado", "acumulado"]) {
     resumen.getColumn(key).numFmt = '"$" #,##0';
+  }
+  for (const key of ["reservado", "confirmado"]) {
+    porClub.getColumn(key).numFmt = '"$" #,##0';
   }
 
   const buffer = await libro.xlsx.writeBuffer();

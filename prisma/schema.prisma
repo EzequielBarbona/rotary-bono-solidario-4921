@@ -53,3 +53,12 @@ model Order {
   confirmationSentAt DateTime?
   tickets          Ticket[]
 }
+
+/// Interruptores que el subcomite prende y apaga desde el panel. Van a la
+/// base y no a variables de entorno para que el cambio sea inmediato y no
+/// dependa de un deploy.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

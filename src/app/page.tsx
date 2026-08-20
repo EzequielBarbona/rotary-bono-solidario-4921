@@ -5,7 +5,10 @@ import { childrenProtected, pictogramScale } from "@/lib/impact";
 import { formatDrawDate } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { PersonPictogram } from "@/components/PersonPictogram";
+import { RankingClubes } from "@/components/RankingClubes";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
+import { rankingPorClub } from "@/lib/ranking";
+import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 
 // El contador de vacunas tiene que reflejar las ordenes en tiempo real,
 // no un valor congelado en el build.
@@ -20,6 +23,10 @@ export default async function Home() {
     where: { status: { in: ["PENDIENTE", "PAGADO"] } },
     _sum: { totalAmount: true },
   });
+  // El ranking entre clubes solo se muestra si el subcomite lo publico
+  // desde el panel; mientras este apagado ni siquiera se consulta.
+  const mostrarRanking = await getFlag(RANKING_PUBLICO);
+  const filasClubes = mostrarRanking ? await rankingPorClub() : [];
   const kidsSoFar = childrenProtected(_sum.totalAmount ?? 0);
   const kidsGoal = childrenProtected(raffleConfig.totalTickets * raffleConfig.ticketPriceArs);
   const pictogram = pictogramScale(kidsGoal, kidsSoFar, 400, 10);
@@ -217,6 +224,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {mostrarRanking && <RankingClubes filas={filasClubes} />}
 
       <section className="bg-white px-4 py-16">
         <div className="max-w-lg w-full mx-auto flex flex-col items-center gap-4 text-center">

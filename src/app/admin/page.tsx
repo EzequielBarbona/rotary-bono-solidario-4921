@@ -77,7 +77,11 @@ export default async function AdminPage() {
         <Link href="/admin/ventas" className="text-rotary-azure hover:underline">
           mirá las ventas semana por semana
         </Link>{" "}
-        para ver la serie cerrada.
+        para ver la serie cerrada, o{" "}
+        <Link href="/admin/clubes" className="text-rotary-azure hover:underline">
+          el ranking por club
+        </Link>
+        .
       </p>
 
       <div className="flex flex-col gap-4">
