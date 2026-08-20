@@ -186,13 +186,14 @@ export function BuyerForm({
               <option value="" disabled>
                 ¿A qué club pertenecés?
               </option>
+              <option value={OTRO_CLUB}>{OTRO_CLUB} (de otro distrito)</option>
+              <option value={SIN_CLUB}>{SIN_CLUB}</option>
+              <option disabled>──────────</option>
               {DISTRICT_CLUBS.map((club) => (
                 <option key={club} value={club}>
                   {club}
                 </option>
               ))}
-              <option value={OTRO_CLUB}>{OTRO_CLUB} (de otro distrito)</option>
-              <option value={SIN_CLUB}>{SIN_CLUB}</option>
             </select>
             {buyerClub === OTRO_CLUB && (
               <input
