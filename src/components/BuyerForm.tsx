@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { usePurchase } from "@/lib/purchase-context";
 import { formatArs } from "@/lib/format";
 import { CopyButton } from "@/components/CopyButton";
+import { DISTRICT_CLUBS, OTRO_CLUB, SIN_CLUB, hayListaDeClubes } from "@/lib/clubs";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
 import { PersonPictogram } from "@/components/PersonPictogram";
 
@@ -26,6 +27,7 @@ export function BuyerForm({
   const [buyerPhone, setBuyerPhone] = useState("");
   const [buyerCuit, setBuyerCuit] = useState("");
   const [buyerClub, setBuyerClub] = useState("");
+  const [otroClub, setOtroClub] = useState("");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export function BuyerForm({
       formData.set("buyerEmail", buyerEmail);
       formData.set("buyerPhone", buyerPhone);
       formData.set("buyerCuit", buyerCuit);
-      formData.set("buyerClub", buyerClub);
+      formData.set("buyerClub", buyerClub === OTRO_CLUB ? otroClub.trim() : buyerClub);
       formData.set("receipt", receiptFile);
 
       const res = await fetch("/api/reserve", { method: "POST", body: formData });
@@ -170,12 +172,46 @@ export function BuyerForm({
           onChange={(e) => setBuyerCuit(e.target.value)}
           className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
         />
-        <input
-          placeholder="Club al que pertenecés (opcional)"
-          value={buyerClub}
-          onChange={(e) => setBuyerClub(e.target.value)}
-          className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
-        />
+        {/* Con el padron cargado se elige de una lista, para que el ranking
+            de clubes no se fragmente ("cipo" y "cipolletti" son el mismo
+            club). Sin padron todavia, se sigue pidiendo como texto libre. */}
+        {hayListaDeClubes() ? (
+          <>
+            <select
+              required
+              value={buyerClub}
+              onChange={(e) => setBuyerClub(e.target.value)}
+              className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-rotary-azure"
+            >
+              <option value="" disabled>
+                ¿A qué club pertenecés?
+              </option>
+              {DISTRICT_CLUBS.map((club) => (
+                <option key={club} value={club}>
+                  {club}
+                </option>
+              ))}
+              <option value={OTRO_CLUB}>{OTRO_CLUB} (de otro distrito)</option>
+              <option value={SIN_CLUB}>{SIN_CLUB}</option>
+            </select>
+            {buyerClub === OTRO_CLUB && (
+              <input
+                required
+                placeholder="¿Cuál es tu club?"
+                value={otroClub}
+                onChange={(e) => setOtroClub(e.target.value)}
+                className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
+              />
+            )}
+          </>
+        ) : (
+          <input
+            placeholder="Club al que pertenecés (opcional)"
+            value={buyerClub}
+            onChange={(e) => setBuyerClub(e.target.value)}
+            className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
+          />
+        )}
 
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-rotary-ink">
