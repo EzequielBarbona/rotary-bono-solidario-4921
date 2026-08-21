@@ -1,3 +1,4 @@
+import { childrenProtected } from "@/lib/impact";
 import { esGrupoAgrupado, type FilaClub } from "@/lib/ranking";
 
 const TOPE = 10;
@@ -5,8 +6,14 @@ const TOPE = 10;
 /**
  * El ranking de clubes tal como lo ve cualquiera que entre al sitio.
  *
- * Solo muestra la cantidad de bonos y no los montos: la idea es la
- * competencia entre clubes, no exponer cuanta plata movio cada uno.
+ * Cuenta chicos vacunados y no bonos ni pesos: la competencia entre
+ * clubes se mide en lo que el bono consigue, no en cuanta plata movio
+ * cada uno. El panel de administracion si lleva la cuenta por bono.
+ *
+ * Cada club se convierte por separado y childrenProtected redondea para
+ * abajo, asi que la suma de las filas puede dar un poco menos que el
+ * contador general de la home. Preferimos quedarnos cortos por club antes
+ * que atribuirle a alguno un chico que no llego a financiar.
  */
 export function RankingClubes({ filas }: { filas: FilaClub[] }) {
   const clubes = filas.filter((f) => !esGrupoAgrupado(f.club));
@@ -33,8 +40,12 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
           Cómo va la copa entre clubes
         </span>
         <h2 className="text-3xl font-extrabold text-rotary-ink text-balance">
-          Los clubes que más bonos vendieron
+          Los clubes que más vacunaron
         </h2>
+        <p className="text-base text-rotary-ink/70 -mt-2">
+          Chicos protegidos contra la polio gracias a los bonos que vendió
+          cada club.
+        </p>
 
         <ol className="w-full flex flex-col mt-2">
           {podio.map((fila) => (
@@ -57,7 +68,7 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
                 {fila.club}
               </span>
               <span className="shrink-0 tabular-nums text-lg font-bold text-rotary-azure">
-                {fila.bonos}
+                {childrenProtected(fila.reservado).toLocaleString("es-AR")}
               </span>
             </li>
           ))}
@@ -66,20 +77,26 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
         {restantes > 0 && (
           <p className="text-sm text-rotary-ink/60">
             {restantes === 1
-              ? "Y un club más que ya vendió bonos."
-              : `Y ${restantes} clubes más que ya vendieron bonos.`}
+              ? "Y un club más que ya está sumando."
+              : `Y ${restantes} clubes más que ya están sumando.`}
           </p>
         )}
 
         {agrupados.length > 0 && (
           <p className="text-sm text-rotary-ink/60">
-            {agrupados.map((f, i) => (
-              <span key={f.club}>
-                {i > 0 && " · "}
-                {f.club}: <span className="font-semibold">{f.bonos}</span> bono
-                {f.bonos !== 1 ? "s" : ""}
-              </span>
-            ))}
+            {agrupados.map((f, i) => {
+              const chicos = childrenProtected(f.reservado);
+              return (
+                <span key={f.club}>
+                  {i > 0 && " · "}
+                  {f.club}:{" "}
+                  <span className="font-semibold">
+                    {chicos.toLocaleString("es-AR")}
+                  </span>{" "}
+                  chico{chicos !== 1 ? "s" : ""}
+                </span>
+              );
+            })}
           </p>
         )}
 
