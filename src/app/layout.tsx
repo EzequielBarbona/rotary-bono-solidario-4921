@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import { raffleConfig } from "@/lib/config";
-import { formatArs } from "@/lib/format";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
@@ -17,10 +16,14 @@ const openSans = Open_Sans({
  * datos mas la imagen de opengraph-image.tsx. Sin metadataBase la URL de
  * la imagen sale relativa y esas apps no la muestran.
  */
+/*
+ * Corta a proposito: WhatsApp muestra esta descripcion debajo de la
+ * imagen y cada linea de texto le come alto a la tarjeta. El premio y el
+ * precio ya se leen en la imagen, asi que aca solo va lo que la imagen no
+ * dice.
+ */
 const description =
-  "Sorteamos una estadía de 5 noches para 2 personas en Bariloche o Las Grutas. " +
-  `Bonos de ${formatArs(raffleConfig.ticketPriceArs)}: lo recaudado va al programa ` +
-  "PolioPlus de Rotary International para erradicar la polio.";
+  "Lo recaudado va al programa PolioPlus de Rotary International.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(raffleConfig.siteUrl),

@@ -177,7 +177,10 @@ export default async function Home() {
                 <p className="text-sm text-white/80">
                   Cada figura representa {pictogram.unitsPerIcon} niños o niñas. Si cumplimos
                   nuestro objetivo estaremos ayudando a más de{" "}
-                  <span className="font-bold text-white">6500</span> infantes.
+                  <span className="font-bold text-white">
+                    {kidsGoal.toLocaleString("es-AR")}
+                  </span>{" "}
+                  infantes.
                 </p>
 
                 <details className="text-xs text-white/50 mt-1">
