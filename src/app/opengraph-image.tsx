@@ -24,12 +24,11 @@ const metaChicos = childrenProtected(
 export const alt = "Bono Solidario PolioPlus - Distrito Rotary 4921";
 
 /*
- * 3:2 y no el 1.91:1 clasico de Facebook: WhatsApp respeta la proporcion
- * y le da mas alto a la tarjeta, que es donde este bono se comparte. El
- * contenido igual queda dentro del centro por si otra red recorta a
- * 1.91:1.
+ * 1200x630 (1.91:1). Probamos 3:2 para ganar alto y salio al reves:
+ * WhatsApp dejo de mostrar la tarjeta grande y la degrado a la miniatura
+ * chiquita al costado del texto. Esta proporcion es la que reconoce.
  */
-export const size = { width: 1200, height: 800 };
+export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 // Los assets no dependen del request, se leen una sola vez al cargar el modulo.
@@ -61,7 +60,7 @@ export default async function Image() {
           textAlign: "center",
           // Poco aire arriba y abajo: la tarjeta se ve chica en el chat,
           // asi que el espacio va todo a que las letras sean grandes.
-          padding: "28px 40px 34px",
+          padding: "18px 40px 24px",
           backgroundImage: "linear-gradient(135deg, #0067c8 0%, #17458f 100%)",
           color: "white",
           fontFamily: "Open Sans",
@@ -92,7 +91,7 @@ export default async function Image() {
         />
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoSrc} width={380} alt="" style={{ marginBottom: 26 }} />
+        <img src={logoSrc} width={300} alt="" style={{ marginBottom: 14 }} />
 
         {/*
           El causal va primero y en grande. A un rotario lo mueve la meta,
@@ -107,7 +106,7 @@ export default async function Image() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            fontSize: 68,
+            fontSize: 58,
             fontWeight: 800,
             lineHeight: 1.12,
           }}
@@ -118,8 +117,8 @@ export default async function Image() {
 
         <div
           style={{
-            marginTop: 14,
-            fontSize: 86,
+            marginTop: 10,
+            fontSize: 66,
             fontWeight: 800,
             color: "#f7a81b",
             lineHeight: 1.1,
@@ -130,8 +129,8 @@ export default async function Image() {
 
         <div
           style={{
-            marginTop: 30,
-            width: 620,
+            marginTop: 20,
+            width: 560,
             height: 3,
             backgroundColor: "rgba(255,255,255,0.25)",
           }}
@@ -148,8 +147,8 @@ export default async function Image() {
             // Satori no hereda el textAlign del contenedor en estos
             // anidados: sin esto las lineas cortas quedan a la izquierda.
             alignItems: "center",
-            marginTop: 26,
-            fontSize: 40,
+            marginTop: 18,
+            fontSize: 30,
             fontWeight: 400,
             color: "rgba(255,255,255,0.92)",
             lineHeight: 1.25,
