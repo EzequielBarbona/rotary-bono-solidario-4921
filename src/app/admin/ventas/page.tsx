@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { isAdminSessionActive } from "@/lib/admin-auth";
 import { formatArs } from "@/lib/format";
 import { ART_WEEK_MS, formatArtDayMonth, startOfArtWeek } from "@/lib/dates";
+import { raffleConfig } from "@/lib/config";
+import { proyectarVentas } from "@/lib/proyeccion";
 import { AdminLogin } from "@/components/admin/AdminLogin";
+import { ProyeccionVentas } from "@/components/admin/ProyeccionVentas";
 
 // Los numeros tienen que reflejar las ordenes en tiempo real.
 export const dynamic = "force-dynamic";
@@ -28,6 +31,14 @@ export default async function VentasPorSemanaPage() {
     where: { status: { in: ["PENDIENTE", "PAGADO"] } },
     select: { createdAt: true, totalAmount: true, ticketCount: true, status: true },
     orderBy: { createdAt: "asc" },
+  });
+
+  // Las mismas ordenes que alimentan la tabla: la proyeccion no puede
+  // salir de un conteo distinto del que se ve abajo.
+  const proyeccion = proyectarVentas({
+    ventas: ordenes,
+    totalBonos: raffleConfig.totalTickets,
+    drawDate: raffleConfig.drawDate,
   });
 
   const semanas: SemanaFila[] = [];
@@ -84,6 +95,12 @@ export default async function VentasPorSemanaPage() {
           </Link>
         </div>
       </div>
+
+      <ProyeccionVentas
+        proyeccion={proyeccion}
+        totalBonos={raffleConfig.totalTickets}
+        drawDate={raffleConfig.drawDate}
+      />
 
       <p className="text-sm text-rotary-ink/70">
         Cada semana va de lunes a domingo, en horario argentino, y se cuenta por

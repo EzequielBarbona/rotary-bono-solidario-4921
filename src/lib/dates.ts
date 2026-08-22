@@ -27,3 +27,11 @@ export function formatArtDayMonth(date: Date): string {
   const mes = String(shifted.getUTCMonth() + 1).padStart(2, "0");
   return `${dia}/${mes}`;
 }
+
+/** Formatea una fecha como "dd/mm/aaaa" en horario argentino. */
+export function formatArtDate(date: Date): string {
+  const shifted = new Date(date.getTime() + ART_OFFSET_MS);
+  const dia = String(shifted.getUTCDate()).padStart(2, "0");
+  const mes = String(shifted.getUTCMonth() + 1).padStart(2, "0");
+  return `${dia}/${mes}/${shifted.getUTCFullYear()}`;
+}
