@@ -10,11 +10,14 @@ import { useEffect, useState } from "react";
 export function CopyButton({
   value,
   label,
+  texto = "Copiar",
 }: {
   /** Lo que se copia, que no siempre es lo que se ve (el monto se copia sin el "$"). */
   value: string;
   /** Para el lector de pantalla: "Copiar alias", "Copiar CVU". */
   label: string;
+  /** Texto del botón, cuando "Copiar" a secas no alcanza para saber qué copia. */
+  texto?: string;
 }) {
   const [copiado, setCopiado] = useState(false);
   const [falloCopia, setFalloCopia] = useState(false);
@@ -45,7 +48,7 @@ export function CopyButton({
         aria-label={label}
         className="ml-2 align-middle text-xs font-semibold text-rotary-azure border border-rotary-azure/40 rounded-full px-2 py-0.5 hover:bg-rotary-azure/10 transition-colors"
       >
-        {copiado ? "¡Copiado!" : "Copiar"}
+        {copiado ? "¡Copiado!" : texto}
       </button>
       {falloCopia && (
         <span className="ml-2 text-xs text-amber-700">

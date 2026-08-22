@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Datos de una orden para la pantalla que ve el comprador.
+ *
+ * El select es explicito y corto a proposito: los numeros de orden son
+ * correlativos, asi que cualquiera puede pedir /api/orders/7. Devolver la
+ * orden entera dejaba salir por ahi el CUIT, el telefono y hasta la
+ * imagen del comprobante de transferencia de otra persona.
+ */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -13,7 +21,16 @@ export async function GET(
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { tickets: { orderBy: { number: "asc" } } },
+    select: {
+      id: true,
+      buyerName: true,
+      buyerEmail: true,
+      buyerClub: true,
+      ticketCount: true,
+      totalAmount: true,
+      status: true,
+      tickets: { select: { number: true }, orderBy: { number: "asc" } },
+    },
   });
 
   if (!order) {

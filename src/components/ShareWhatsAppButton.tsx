@@ -20,14 +20,23 @@ const SHARE_MESSAGE = [
 export function ShareWhatsAppButton({
   label = "Compartir por WhatsApp",
   className = "",
+  ruta = "/",
+  mensaje = SHARE_MESSAGE,
 }: {
   label?: string;
   className?: string;
+  /**
+   * Que se comparte. Por defecto el link limpio, que es el de la difusion
+   * oficial; desde la orden se pasa el link del club del comprador para
+   * que lo que el reparta le sume a ese club.
+   */
+  ruta?: string;
+  mensaje?: string;
 }) {
   function share() {
     // La URL se arma en el click y no en el render para no depender de
     // una variable de entorno ni romper la hidratacion.
-    const text = `${SHARE_MESSAGE}\n${window.location.origin}/`;
+    const text = `${mensaje}\n${window.location.origin}${ruta}`;
     window.open(
       `https://wa.me/?text=${encodeURIComponent(text)}`,
       "_blank",

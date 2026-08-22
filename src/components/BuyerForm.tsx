@@ -14,11 +14,14 @@ export function BuyerForm({
   bankAccountHolder,
   bankAlias,
   bankCbu,
+  clubInvitante,
 }: {
   ticketPriceArs: number;
   bankAccountHolder: string;
   bankAlias: string;
   bankCbu: string;
+  /** Club por cuyo link entro el comprador, si entro por uno. */
+  clubInvitante: string | null;
 }) {
   const router = useRouter();
   const { quantity, selectedNumbers } = usePurchase();
@@ -26,7 +29,9 @@ export function BuyerForm({
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
   const [buyerCuit, setBuyerCuit] = useState("");
-  const [buyerClub, setBuyerClub] = useState("");
+  // Si entro por el link de un club, ese club ya viene elegido. Igual
+  // queda editable: puede pasarle el link a alguien de otro lado.
+  const [buyerClub, setBuyerClub] = useState(clubInvitante ?? "");
   const [otroClub, setOtroClub] = useState("");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -174,9 +179,22 @@ export function BuyerForm({
         />
         {/* Con el padron cargado se elige de una lista, para que el ranking
             de clubes no se fragmente ("cipo" y "cipolletti" son el mismo
-            club). Sin padron todavia, se sigue pidiendo como texto libre. */}
+            club). Sin padron todavia, se sigue pidiendo como texto libre.
+
+            La pregunta es "quien te invito" y no "de que club sos": el
+            bono lo difunden los clubes en sus ciudades y la mayoria de
+            los compradores no van a ser socios de ninguno. Preguntado al
+            reves, todo vecino contesta "no soy rotario" y el club que
+            hizo el trabajo se queda sin el punto. */}
         {hayListaDeClubes() ? (
           <>
+            {clubInvitante && (
+              <p className="text-sm bg-rotary-azure/10 text-rotary-ink rounded-lg px-3 py-2.5">
+                Tu compra suma al club{" "}
+                <span className="font-bold">{clubInvitante}</span>. Si no es
+                así, cambialo acá abajo.
+              </p>
+            )}
             <select
               required
               value={buyerClub}
@@ -184,10 +202,12 @@ export function BuyerForm({
               className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-rotary-azure"
             >
               <option value="" disabled>
-                ¿A qué club pertenecés?
+                ¿Qué club te invitó a colaborar?
               </option>
               <option value={OTRO_CLUB}>{OTRO_CLUB} (de otro distrito)</option>
-              <option value={SIN_CLUB}>{SIN_CLUB}</option>
+              {/* El valor guardado no cambia (lo usa el ranking), solo el
+                  texto: "no soy rotario" no contesta esta pregunta. */}
+              <option value={SIN_CLUB}>Ninguno, llegué por mi cuenta</option>
               <option disabled>──────────</option>
               {DISTRICT_CLUBS.map((club) => (
                 <option key={club} value={club}>
@@ -207,7 +227,7 @@ export function BuyerForm({
           </>
         ) : (
           <input
-            placeholder="Club al que pertenecés (opcional)"
+            placeholder="¿Qué club te invitó a colaborar? (opcional)"
             value={buyerClub}
             onChange={(e) => setBuyerClub(e.target.value)}
             className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
@@ -245,10 +265,12 @@ export function BuyerForm({
             </p>
             <p>
               <span className="font-semibold text-rotary-ink">
-                Club al que pertenecés (opcional):
+                Club que te invitó:
               </span>{" "}
-              nos sirve para saber qué clubes del distrito están colaborando. No es
-              obligatorio si no pertenecés a ninguno.
+              los clubes del distrito difunden el bono en sus ciudades y compiten
+              entre ellos por cuántos chicos ayudan a vacunar. Tu compra suma a la
+              cuenta del club que te invitó, sin importar si sos socio o no. Si
+              llegaste por tu cuenta, elegí esa opción y tu aporte suma igual.
             </p>
             <p>
               <span className="font-semibold text-rotary-ink">Captura del comprobante:</span>{" "}

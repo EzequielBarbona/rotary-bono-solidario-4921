@@ -159,3 +159,46 @@ export function grupoDeRanking(club: string | null): string {
   if (DISTRICT_CLUBS.includes(valor)) return valor;
   return GRUPO_OTROS;
 }
+
+/**
+ * Cookie donde queda el club que invito a colaborar.
+ *
+ * Es lo que garantiza que la compra de un vecino que no es rotario se le
+ * acredite al club que difundio el bono: el comprador no tiene que
+ * acordarse de nada, alcanza con que haya entrado por el link del club.
+ */
+export const CLUB_COOKIE = "club";
+
+/** Dos meses: el que ve el flyer hoy y compra dentro de un mes sigue sumando al mismo club. */
+export const CLUB_COOKIE_MAX_AGE = 60 * 24 * 60 * 60;
+
+/** Nombre del club convertido en algo que se pueda pegar en un flyer: "Villa Gesell (Rotaract)" -> "villa-gesell-rotaract". */
+export function slugDeClub(club: string): string {
+  return club
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+const CLUB_POR_SLUG = new Map(DISTRICT_CLUBS.map((club) => [slugDeClub(club), club]));
+
+/** El club del padron que corresponde a un slug, o null si el link es invento. */
+export function clubDeSlug(slug: string): string | null {
+  return CLUB_POR_SLUG.get(slug.toLowerCase()) ?? null;
+}
+
+/**
+ * Ruta de invitacion de un club, o null si ese club no esta en el padron.
+ *
+ * Devuelve null a proposito para "No soy rotario" y para los clubes de
+ * otros distritos escritos a mano: no tienen cuenta de puntos, asi que
+ * comparten el link limpio.
+ */
+export function rutaDeClub(club: string | null | undefined): string | null {
+  const valor = club?.trim();
+  if (!valor) return null;
+  const slug = slugDeClub(valor);
+  return CLUB_POR_SLUG.has(slug) ? `/c/${slug}` : null;
+}

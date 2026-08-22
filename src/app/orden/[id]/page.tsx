@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { formatArs } from "@/lib/format";
+import { rutaDeClub } from "@/lib/clubs";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 
 type OrderStatus = "PENDIENTE" | "PAGADO" | "EXPIRADO" | "CANCELADO";
@@ -9,6 +10,7 @@ type Order = {
   id: number;
   buyerName: string;
   buyerEmail: string;
+  buyerClub: string | null;
   ticketCount: number;
   totalAmount: number;
   status: OrderStatus;
@@ -66,6 +68,8 @@ export default function OrderPage({
     .map((t) => t.number.toString().padStart(4, "0"))
     .join(", ");
 
+  const rutaClub = rutaDeClub(order.buyerClub);
+
   return (
     <main className="flex-1 max-w-lg w-full mx-auto px-4 py-12 flex flex-col gap-6">
       <h1 className="text-2xl font-extrabold text-rotary-ink">Orden #{order.id}</h1>
@@ -116,12 +120,18 @@ export default function OrderPage({
         </div>
       )}
 
+      {/* Acá el link deja de ser el limpio: el que comparte un comprador
+          lleva el código de su club, así que todo lo que se venda por esa
+          cadena le suma a ese club. Si no eligió ninguno del padrón,
+          comparte el link común. */}
       {(order.status === "PENDIENTE" || order.status === "PAGADO") && (
         <div className="border-t border-rotary-ink/10 pt-6 flex flex-col items-center gap-3 text-center">
           <p className="text-base text-rotary-ink/70">
-            Ya sos parte. Compartilo con tu club para que lleguemos a más chicos.
+            {rutaClub
+              ? `Ya sos parte. Compartilo: cada bono que se venda por tu link suma a ${order.buyerClub}.`
+              : "Ya sos parte. Compartilo para que lleguemos a más chicos."}
           </p>
-          <ShareWhatsAppButton />
+          <ShareWhatsAppButton ruta={rutaClub ?? "/"} />
         </div>
       )}
     </main>

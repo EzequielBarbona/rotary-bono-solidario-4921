@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatArs } from "@/lib/format";
 import { toWhatsAppNumber } from "@/lib/phone";
+import { rutaDeClub } from "@/lib/clubs";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 type AdminOrder = {
@@ -65,6 +66,7 @@ export function OrderCard({
   // distrito es WhatsApp igual. Esto le deja el mensaje escrito al admin
   // para que solo tenga que apretar enviar.
   const whatsappNumber = toWhatsAppNumber(order.buyerPhone);
+  const rutaClub = rutaDeClub(order.buyerClub);
 
   function avisarPorWhatsApp() {
     const mensaje = [
@@ -78,8 +80,13 @@ export function OrderCard({
       "",
       "¡Gracias por colaborar para erradicar la polio!",
       "",
-      "¿Nos das una mano para que llegue más lejos? Compartí el bono con tu gente:",
-      `${window.location.origin}/`,
+      // El link que se le manda al comprador lleva el codigo de su club:
+      // todo lo que se venda por esa cadena le suma a ese club. Si no
+      // eligio un club del padron, va el link limpio.
+      rutaClub
+        ? `¿Nos das una mano para que llegue más lejos? Compartí este link, que suma a ${order.buyerClub}:`
+        : "¿Nos das una mano para que llegue más lejos? Compartí el bono con tu gente:",
+      `${window.location.origin}${rutaClub ?? "/"}`,
     ].join("\n");
     window.open(
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`,

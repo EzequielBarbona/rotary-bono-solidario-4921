@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { isAdminSessionActive } from "@/lib/admin-auth";
 import { formatArs } from "@/lib/format";
-import { DISTRICT_CLUBS } from "@/lib/clubs";
+import { DISTRICT_CLUBS, rutaDeClub } from "@/lib/clubs";
+import { raffleConfig } from "@/lib/config";
 import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { AdminLogin } from "@/components/admin/AdminLogin";
+import { CopyButton } from "@/components/CopyButton";
 import { PublicarRankingToggle } from "@/components/admin/PublicarRankingToggle";
 
 // Es un ranking en vivo: nunca cacheado.
@@ -42,11 +44,38 @@ export default async function VentasPorClubPage() {
       <PublicarRankingToggle inicial={publicado} />
 
       <p className="text-sm text-rotary-ink/70">
-        Cada bono se cuenta en el club que eligió el comprador al reservar.
-        Quienes marcaron un club de otro distrito o dijeron no ser rotarios
-        aparecen agrupados al final: suman al total recaudado, no al ranking
-        entre clubes del 4921.
+        Cada bono se cuenta en el club que invitó al comprador, sea socio o
+        no. Quienes indicaron un club de otro distrito o llegaron por su
+        cuenta aparecen agrupados al final: suman al total recaudado, no al
+        ranking entre clubes del 4921.
       </p>
+
+      {/* Los links tienen que estar acá, y para los 121 clubes: el que
+          todavía no vendió nada es justamente el que más necesita el suyo,
+          y si el presidente se lo tiene que pedir a alguien no lo usa. */}
+      <details className="border border-rotary-ink/10 rounded-lg px-4 py-3">
+        <summary className="cursor-pointer text-sm font-bold text-rotary-ink">
+          Links de invitación de cada club
+        </summary>
+        <p className="mt-3 text-sm text-rotary-ink/70">
+          Mandale a cada club el suyo. Quien compre entrando por ese link
+          suma a ese club aunque no sea rotario y no sepa qué contestar en el
+          formulario. El link limpio del sitio sigue siendo el de la difusión
+          oficial del distrito.
+        </p>
+        <ul className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1">
+          {DISTRICT_CLUBS.map((club) => (
+            <li key={club} className="text-sm text-rotary-ink/80 py-0.5">
+              {club}
+              <CopyButton
+                value={`${raffleConfig.siteUrl}${rutaDeClub(club)}`}
+                label={`Copiar el link de invitación de ${club}`}
+                texto="Copiar link"
+              />
+            </li>
+          ))}
+        </ul>
+      </details>
 
       {filas.length === 0 ? (
         <p className="text-base text-rotary-ink/60">Todavía no hay ventas registradas.</p>
