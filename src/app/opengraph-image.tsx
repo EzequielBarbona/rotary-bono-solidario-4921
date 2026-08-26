@@ -98,6 +98,11 @@ export default async function Image() {
           no el premio: el premio es la excusa para que colabore, asi que
           va despues y en letra mas chica.
 
+          El titulo es el fin ultimo del programa, no el numero: el mundo
+          libre de polio se entiende de un vistazo en el chat y no envejece
+          si cambia el tipo de cambio. La cuenta de chicos vacunados baja
+          al bloque de abajo, que es donde se explica.
+
           Los cortes de linea van a mano; dejarlos al wrap automatico parte
           las frases en cualquier lado.
         */}
@@ -106,13 +111,13 @@ export default async function Image() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            fontSize: 58,
+            fontSize: 62,
             fontWeight: 800,
             lineHeight: 1.12,
           }}
         >
-          <div>{`Queremos vacunar ${metaChicos}`}</div>
-          <div>infantes contra la polio</div>
+          <div>Queremos un mundo</div>
+          <div>libre de polio</div>
         </div>
 
         <div
@@ -155,7 +160,8 @@ export default async function Image() {
           }}
         >
           <div style={{ fontWeight: 800 }}>Bono Solidario PolioPlus</div>
-          <div>Sorteamos una estadía de 5 noches para 2 personas</div>
+          <div>{`Nuestra meta: vacunar ${metaChicos} infantes contra la polio`}</div>
+          <div style={{ marginTop: 12 }}>Sorteamos una estadía de 5 noches para 2 personas</div>
           <div>en Bariloche o Las Grutas</div>
           <div style={{ marginTop: 12 }}>
             {`Bonos de ${formatArs(raffleConfig.ticketPriceArs)} · Sorteo ${formatDrawDate(
