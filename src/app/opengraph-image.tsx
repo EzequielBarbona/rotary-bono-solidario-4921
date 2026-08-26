@@ -3,22 +3,15 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { raffleConfig } from "@/lib/config";
 import { formatArs, formatDrawDate } from "@/lib/format";
-import { childrenProtected } from "@/lib/impact";
-
-/*
- * La meta sale de la misma cuenta que el pictograma de la home, no de un
- * numero escrito a mano: si cambia el precio del bono o el tipo de
- * cambio, la tarjeta no puede quedar prometiendo otra cosa.
- */
-const metaChicos = childrenProtected(
-  raffleConfig.totalTickets * raffleConfig.ticketPriceArs
-).toLocaleString("es-AR");
 
 /*
  * Tarjeta que muestran WhatsApp, Facebook e Instagram cuando alguien
- * pega el link del bono. Es lo primero que ve un rotario antes de
- * decidir si abre el sitio, asi que repite el gancho principal: el
- * premio y a donde va la plata.
+ * pega el link del bono, sea el limpio o el de cualquier club: las rutas
+ * /c/[slug] reescriben a la home, asi que todas comparten esta imagen.
+ *
+ * Es lo primero que ve un rotario antes de decidir si abre el sitio, y
+ * abre con la causa. El premio va despues y en letra mas chica: es la
+ * excusa para colaborar, no el motivo.
  */
 
 export const alt = "Bono Solidario PolioPlus - Distrito Rotary 4921";
@@ -93,32 +86,26 @@ export default async function Image() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} width={300} alt="" style={{ marginBottom: 14 }} />
 
-        {/*
-          El causal va primero y en grande. A un rotario lo mueve la meta,
-          no el premio: el premio es la excusa para que colabore, asi que
-          va despues y en letra mas chica.
-
-          Los cortes de linea van a mano; dejarlos al wrap automatico parte
-          las frases en cualquier lado.
-        */}
+        {/* Los cortes de linea van a mano: dejarlos al wrap automatico
+            parte las frases en cualquier lado. */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            fontSize: 58,
+            fontSize: 62,
             fontWeight: 800,
             lineHeight: 1.12,
           }}
         >
-          <div>{`Queremos vacunar ${metaChicos}`}</div>
-          <div>infantes contra la polio</div>
+          <div>Mantengamos la esperanza</div>
+          <div>de un mundo libre de polio</div>
         </div>
 
         <div
           style={{
             marginTop: 10,
-            fontSize: 66,
+            fontSize: 72,
             fontWeight: 800,
             color: "#f7a81b",
             lineHeight: 1.1,
