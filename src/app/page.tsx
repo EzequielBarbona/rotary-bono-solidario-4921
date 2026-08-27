@@ -2,13 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { raffleConfig } from "@/lib/config";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
-import { formatDrawDate } from "@/lib/format";
+import { formatArs, formatDrawDate } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { PersonPictogram } from "@/components/PersonPictogram";
 import { RankingClubes } from "@/components/RankingClubes";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
+import { CompartirInstagram } from "@/components/CompartirInstagram";
 import { rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
+import { RUTA_DISTRITO } from "@/lib/clubs";
 
 // El contador de vacunas tiene que reflejar las ordenes en tiempo real,
 // no un valor congelado en el build.
@@ -30,6 +32,25 @@ export default async function Home() {
   const kidsSoFar = childrenProtected(_sum.totalAmount ?? 0);
   const kidsGoal = childrenProtected(raffleConfig.totalTickets * raffleConfig.ticketPriceArs);
   const pictogram = pictogramScale(kidsGoal, kidsSoFar, 400, 10);
+
+  // Pie de foto para Instagram. Sale de los mismos datos que la pagina,
+  // para que no terminen diciendo cosas distintas.
+  const enlaceDifusion = `${raffleConfig.siteUrl}${RUTA_DISTRITO}`;
+  const textoInstagram = [
+    "Mantengamos la esperanza de un mundo libre de polio. ¿Nos ayudás?",
+    "",
+    `Bono Solidario PolioPlus del Distrito Rotary 4921. Con cada bono de ${formatArs(
+      raffleConfig.ticketPriceArs
+    )} colaborás con el programa PolioPlus de Rotary International, que financia campañas de vacunación para erradicar la polio.`,
+    "",
+    "Participás por una estadía de 5 noches para 2 personas en Bariloche o Las Grutas, del 30 de noviembre al 4 de diciembre.",
+    "",
+    `Sorteo ${formatDrawDate(raffleConfig.drawDate)} por la Lotería Nacional, sorteo nocturno.`,
+    "",
+    `Link en la bio 👉 ${enlaceDifusion}`,
+    "",
+    "#EndPolio #PolioPlus #Rotary #Distrito4921",
+  ].join("\n");
 
   return (
     <main className="flex-1 flex flex-col">
@@ -246,7 +267,10 @@ export default async function Home() {
             <p className="text-base text-rotary-ink/70">
               Ayudanos a que llegue más lejos: compartilo con tu club.
             </p>
-            <ShareWhatsAppButton />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+              <ShareWhatsAppButton />
+              <CompartirInstagram enlace={enlaceDifusion} texto={textoInstagram} />
+            </div>
           </div>
         </div>
       </section>
