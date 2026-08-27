@@ -2,6 +2,20 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { CLUB_COOKIE, CLUB_COOKIE_MAX_AGE, clubDeSlug, slugDeClub } from "@/lib/clubs";
 
+/*
+ * Entradas oficiales del distrito. "/" es la raiz de siempre y "/sumate"
+ * es un alias para difundir: se lee como una invitacion y, al ser una URL
+ * que nadie compartio nunca, genera la vista previa de WhatsApp desde
+ * cero en cualquier telefono, incluidos los que tienen guardada una
+ * version vieja de la raiz. (WhatsApp arma la tarjeta en el telefono que
+ * envia y se la guarda por URL, asi que una URL nueva es la unica forma
+ * segura de que salga la tarjeta actual.)
+ *
+ * Las dos limpian el club: quien entra por el canal del distrito no lo
+ * invito ningun club.
+ */
+const ENTRADAS_DISTRITO = new Set(["/", "/sumate"]);
+
 const OPCIONES_COOKIE = {
   path: "/",
   maxAge: CLUB_COOKIE_MAX_AGE,
@@ -28,8 +42,8 @@ function entraDesdeAfuera(request: NextRequest) {
 }
 
 /**
- * Links de invitacion de club y limpieza del club al entrar por el link
- * limpio.
+ * Links de invitacion de club y limpieza del club en las entradas del
+ * distrito.
  *
  * /c/cipolletti es una reescritura y no un redirect: WhatsApp arma la
  * vista previa pidiendo el link, y con un redirect de por medio la
@@ -43,18 +57,19 @@ function entraDesdeAfuera(request: NextRequest) {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/") {
-    // El link limpio es el de la difusion oficial del distrito: quien
-    // entra por ahi no lo invito ningun club, asi que no puede arrastrar
-    // el de una visita anterior.
-    //
-    // Solo cuando entra desde afuera. Desde el paso 1 de la compra el
-    // boton "‹ Volver" apunta a la home, y borrar ahi le sacaria el club
-    // a alguien en plena compra sin que se entere.
-    if (!entraDesdeAfuera(request)) return NextResponse.next();
+  if (ENTRADAS_DISTRITO.has(pathname)) {
+    // "/sumate" no tiene pagina propia: muestra la home sin cambiar la
+    // URL que la persona tiene a la vista.
+    const respuesta =
+      pathname === "/"
+        ? NextResponse.next()
+        : NextResponse.rewrite(new URL("/", request.url));
 
-    const respuesta = NextResponse.next();
-    if (request.cookies.has(CLUB_COOKIE)) {
+    // Se limpia solo si la visita viene de afuera. Desde el paso 1 de la
+    // compra el boton "‹ Volver" apunta a la home, y borrar en toda
+    // visita le sacaria el club a alguien en plena compra sin que se
+    // entere.
+    if (entraDesdeAfuera(request) && request.cookies.has(CLUB_COOKIE)) {
       respuesta.cookies.delete({ name: CLUB_COOKIE, path: "/" });
     }
     return respuesta;
@@ -76,5 +91,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/c/:slug"],
+  matcher: ["/", "/sumate", "/c/:slug"],
 };

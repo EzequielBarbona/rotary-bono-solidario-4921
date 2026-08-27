@@ -60,8 +60,16 @@ export default async function VentasPorClubPage() {
         <p className="mt-3 text-sm text-rotary-ink/70">
           Mandale a cada club el suyo. Quien compre entrando por ese link
           suma a ese club aunque no sea rotario y no sepa qué contestar en el
-          formulario. El link limpio del sitio sigue siendo el de la difusión
-          oficial del distrito.
+          formulario.
+        </p>
+        <p className="mt-3 text-sm text-rotary-ink/70">
+          Para la difusión del distrito va este otro, que no acredita a
+          ningún club:
+          <CopyButton
+            value={`${raffleConfig.siteUrl}/sumate`}
+            label="Copiar el link de difusión del distrito"
+            texto="Copiar link del distrito"
+          />
         </p>
         <ul className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1">
           {DISTRICT_CLUBS.map((club) => (
