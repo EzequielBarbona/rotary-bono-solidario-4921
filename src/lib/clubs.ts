@@ -202,3 +202,14 @@ export function rutaDeClub(club: string | null | undefined): string | null {
   const slug = slugDeClub(valor);
   return CLUB_POR_SLUG.has(slug) ? `/c/${slug}` : null;
 }
+
+/**
+ * Link de difusion del distrito, el que se comparte cuando no hay un club
+ * al que acreditarle la venta.
+ *
+ * Es /sumate y no la raiz porque WhatsApp arma la vista previa en el
+ * telefono que envia y se la guarda por URL: la raiz ya quedo cacheada
+ * con tarjetas viejas en los telefonos que la compartieron durante las
+ * pruebas, y la tarjeta viaja dentro del mensaje.
+ */
+export const RUTA_DISTRITO = "/sumate";

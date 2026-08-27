@@ -1,5 +1,6 @@
 "use client";
 
+import { RUTA_DISTRITO } from "@/lib/clubs";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 /*
@@ -20,7 +21,7 @@ const SHARE_MESSAGE = [
 export function ShareWhatsAppButton({
   label = "Compartir por WhatsApp",
   className = "",
-  ruta = "/",
+  ruta = RUTA_DISTRITO,
   mensaje = SHARE_MESSAGE,
 }: {
   label?: string;
