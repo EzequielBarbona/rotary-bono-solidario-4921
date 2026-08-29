@@ -1,7 +1,69 @@
+import { DISTRICT_CLUBS } from "@/lib/clubs";
 import { childrenProtected } from "@/lib/impact";
 import { esGrupoAgrupado, type FilaClub } from "@/lib/ranking";
 
 const TOPE = 10;
+
+/**
+ * La copa antes de que se venda el primer bono.
+ *
+ * Se muestra igual, con todos en cero, en vez de esconder la seccion: es
+ * la forma de que los clubes vean que la competencia existe antes de que
+ * haya algo que mirar. No inventamos ventas de ejemplo, que ademas
+ * moverian el contador de chicos protegidos con plata que no entro.
+ *
+ * El orden es alfabetico y esta dicho: sin ventas no hay puestos, y un
+ * orden arbitrario sin explicar se lee como que esos clubes van ganando.
+ */
+function CopaEnCero() {
+  const primeros = DISTRICT_CLUBS.slice(0, TOPE);
+  const restantes = DISTRICT_CLUBS.length - primeros.length;
+
+  return (
+    <section className="bg-rotary-azure/5 px-4 py-16">
+      <div className="max-w-xl w-full mx-auto flex flex-col items-center gap-5 text-center">
+        <span className="uppercase tracking-widest text-sm font-semibold text-rotary-azure">
+          Cómo va la copa entre clubes
+        </span>
+        <h2 className="text-3xl font-extrabold text-rotary-ink text-balance">
+          Los clubes que más vacunaron
+        </h2>
+        <p className="text-base text-rotary-ink/70 -mt-2">
+          La copa recién arranca: los {DISTRICT_CLUBS.length} clubes del
+          distrito están en cero. Acá se va a ver cuántos chicos ayudó a
+          vacunar cada uno.
+        </p>
+
+        <ol className="w-full flex flex-col mt-2">
+          {primeros.map((club) => (
+            <li
+              key={club}
+              className="flex items-center gap-4 py-3 px-3 border-b border-rotary-ink/10"
+            >
+              <span className="w-8 shrink-0" />
+              <span className="flex-1 text-left text-lg text-rotary-ink/70">
+                {club}
+              </span>
+              <span className="shrink-0 tabular-nums text-lg font-bold text-rotary-ink/30">
+                0
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        <p className="text-sm text-rotary-ink/60">
+          Y {restantes} clubes más. Por ahora van en orden alfabético; cuando
+          empiecen las ventas se ordenan por chicos vacunados.
+        </p>
+
+        <p className="text-sm text-rotary-ink/60 mt-2">
+          Al comprar elegís tu club, y tu bono suma a su cuenta. Todo lo
+          recaudado va al mismo lugar: la lucha contra la polio.
+        </p>
+      </div>
+    </section>
+  );
+}
 
 /**
  * El ranking de clubes tal como lo ve cualquiera que entre al sitio.
@@ -19,7 +81,7 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
   const clubes = filas.filter((f) => !esGrupoAgrupado(f.club));
   const agrupados = filas.filter((f) => esGrupoAgrupado(f.club));
 
-  if (clubes.length === 0) return null;
+  if (clubes.length === 0) return <CopaEnCero />;
 
   // Cortar en el puesto 10 a secas puede dejar afuera a un club empatado
   // con el ultimo que si entra, y eso se lee como arbitrario: si hay
