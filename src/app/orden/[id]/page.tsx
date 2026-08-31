@@ -126,11 +126,35 @@ export default function OrderPage({
           comparte el link de difusión del distrito. */}
       {(order.status === "PENDIENTE" || order.status === "PAGADO") && (
         <div className="border-t border-rotary-ink/10 pt-6 flex flex-col items-center gap-3 text-center">
-          <p className="text-base text-rotary-ink/70">
-            {rutaClub
-              ? `Ya sos parte. Compartilo: cada bono que se venda por tu link suma a ${order.buyerClub}.`
-              : "Ya sos parte. Compartilo para que lleguemos a más chicos."}
+          <p className="text-lg font-bold text-rotary-ink">
+            Ya sos parte. ¿Nos ayudás a que llegue más lejos?
           </p>
+
+          {rutaClub ? (
+            <div className="w-full max-w-md bg-rotary-azure/5 border border-rotary-azure/20 rounded-xl p-4 flex flex-col gap-2 text-left">
+              <p className="text-base text-rotary-ink">
+                El botón de abajo comparte{" "}
+                <span className="font-bold">el link de tu club</span>.
+              </p>
+              <p className="text-sm text-rotary-ink/75">
+                Quien compre un bono entrando por ese link le suma a{" "}
+                <span className="font-semibold">{order.buyerClub}</span> en la
+                copa entre clubes del distrito, aunque no sea rotario y aunque
+                no conozca a nadie de Rotary.
+              </p>
+              <p className="text-sm text-rotary-ink/75">
+                Por eso conviene que lo mandes vos y no el link común: si lo
+                compartís en tu familia, tu trabajo o tus grupos, cada bono que
+                salga de ahí queda contado para tu club.
+              </p>
+            </div>
+          ) : (
+            <p className="text-base text-rotary-ink/70 max-w-md">
+              Compartilo con tu gente: cada bono que se venda acerca el
+              objetivo de vacunar chicos contra la polio.
+            </p>
+          )}
+
           <ShareWhatsAppButton ruta={rutaClub ?? RUTA_DISTRITO} />
         </div>
       )}

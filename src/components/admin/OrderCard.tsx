@@ -81,11 +81,19 @@ export function OrderCard({
       "¡Gracias por colaborar para erradicar la polio!",
       "",
       // El link que se le manda al comprador lleva el codigo de su club:
-      // todo lo que se venda por esa cadena le suma a ese club. Si no
-      // eligio un club del padron, va el link de difusion del distrito.
-      rutaClub
-        ? `¿Nos das una mano para que llegue más lejos? Compartí este link, que suma a ${order.buyerClub}:`
-        : "¿Nos das una mano para que llegue más lejos? Compartí el bono con tu gente:",
+      // todo lo que se venda por esa cadena le suma a ese club. Hay que
+      // explicarselo, porque si no lo lee como un link cualquiera y
+      // comparte el que tenga a mano. Sin club del padron va el de
+      // difusion del distrito y no hay nada que aclarar.
+      ...(rutaClub
+        ? [
+            "¿Nos das una mano para que llegue más lejos?",
+            "",
+            `Este link es el de tu club: quien compre un bono entrando por acá le suma a ${order.buyerClub} en la copa entre clubes del distrito, aunque no sea rotario.`,
+            "",
+            "Compartilo con tu familia, tu trabajo y tus grupos:",
+          ]
+        : ["¿Nos das una mano para que llegue más lejos? Compartí el bono con tu gente:"]),
       `${window.location.origin}${rutaClub ?? RUTA_DISTRITO}`,
     ].join("\n");
     window.open(
