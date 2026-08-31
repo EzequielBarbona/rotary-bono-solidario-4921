@@ -10,6 +10,7 @@ import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 import { CompartirInstagram } from "@/components/CompartirInstagram";
 import { rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
+import { conLimite } from "@/lib/con-limite";
 import { RUTA_DISTRITO } from "@/lib/clubs";
 
 // El contador de vacunas tiene que reflejar las ordenes en tiempo real,
@@ -21,15 +22,25 @@ export default async function Home() {
   // se colorean apenas alguien reserva, no recien cuando se confirma el
   // pago. Las reservas ya no vencen solas, asi que si alguien reserva y
   // nunca paga el numero queda contado hasta que un admin lo de de baja.
-  const { _sum } = await prisma.order.aggregate({
-    where: { status: { in: ["PENDIENTE", "PAGADO"] } },
-    _sum: { totalAmount: true },
-  });
+  //
+  // Las consultas van con techo de tiempo: si la base se cuelga, la
+  // pagina se dibuja igual con los numeros en cero en vez de dejar al
+  // visitante mirando "el servidor no responde". Perder el contador es
+  // molesto; perder el boton de comprar es perder la venta.
+  const recaudado = await conLimite(
+    prisma.order
+      .aggregate({
+        where: { status: { in: ["PENDIENTE", "PAGADO"] } },
+        _sum: { totalAmount: true },
+      })
+      .then((r) => r._sum.totalAmount ?? 0),
+    0
+  );
   // El ranking entre clubes solo se muestra si el subcomite lo publico
   // desde el panel; mientras este apagado ni siquiera se consulta.
-  const mostrarRanking = await getFlag(RANKING_PUBLICO);
-  const filasClubes = mostrarRanking ? await rankingPorClub() : [];
-  const kidsSoFar = childrenProtected(_sum.totalAmount ?? 0);
+  const mostrarRanking = await conLimite(getFlag(RANKING_PUBLICO), false);
+  const filasClubes = mostrarRanking ? await conLimite(rankingPorClub(), []) : [];
+  const kidsSoFar = childrenProtected(recaudado);
   const kidsGoal = childrenProtected(raffleConfig.totalTickets * raffleConfig.ticketPriceArs);
   const pictogram = pictogramScale(kidsGoal, kidsSoFar, 400, 10);
 
