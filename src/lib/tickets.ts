@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { raffleConfig } from "@/lib/config";
 
@@ -51,6 +52,11 @@ export async function reserveTickets(input: ReserveInput) {
     receiptMimeType,
   } = input;
   const uniqueNumbers = Array.from(new Set(numbers));
+  // Huella del comprobante: no bloquea la compra, solo deja rastro para
+  // que el panel avise si dos ordenes subieron el mismo archivo. Bloquear
+  // aca seria peor: una foto legitima repetida por error dejaria a un
+  // comprador afuera sin que nadie se entere.
+  const receiptHash = createHash("sha256").update(receiptImage).digest("hex");
   const now = new Date();
   const expiresAt = new Date(now.getTime() + raffleConfig.holdMinutes * 60_000);
   const totalAmount = uniqueNumbers.length * raffleConfig.ticketPriceArs;
@@ -65,6 +71,7 @@ export async function reserveTickets(input: ReserveInput) {
         buyerClub: buyerClub || null,
         receiptImage,
         receiptMimeType,
+        receiptHash,
         ticketCount: uniqueNumbers.length,
         totalAmount,
         expiresAt,

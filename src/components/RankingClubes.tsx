@@ -2,7 +2,13 @@ import { DISTRICT_CLUBS } from "@/lib/clubs";
 import { childrenProtected } from "@/lib/impact";
 import { esGrupoAgrupado, type FilaClub } from "@/lib/ranking";
 
-const TOPE = 10;
+/*
+ * Se listan todos los clubes, no un podio: el que esta en el puesto 40
+ * quiere verse, y esconderlo es sacarle la razon para vender. Pero 121
+ * filas seguidas empujan el resto de la pagina fuera de la pantalla, asi
+ * que la lista scrollea y se ven unas quince a la vez.
+ */
+const ALTO_LISTA = "max-h-[53rem]";
 
 /**
  * La copa antes de que se venda el primer bono.
@@ -16,9 +22,6 @@ const TOPE = 10;
  * orden arbitrario sin explicar se lee como que esos clubes van ganando.
  */
 function CopaEnCero() {
-  const primeros = DISTRICT_CLUBS.slice(0, TOPE);
-  const restantes = DISTRICT_CLUBS.length - primeros.length;
-
   return (
     <section className="bg-rotary-azure/5 px-4 py-16">
       <div className="max-w-xl w-full mx-auto flex flex-col items-center gap-5 text-center">
@@ -34,26 +37,29 @@ function CopaEnCero() {
           vacunar cada uno.
         </p>
 
-        <ol className="w-full flex flex-col mt-2">
-          {primeros.map((club) => (
-            <li
-              key={club}
-              className="flex items-center gap-4 py-3 px-3 border-b border-rotary-ink/10"
-            >
-              <span className="w-8 shrink-0" />
-              <span className="flex-1 text-left text-lg text-rotary-ink/70">
-                {club}
-              </span>
-              <span className="shrink-0 tabular-nums text-lg font-bold text-rotary-ink/30">
-                0
-              </span>
-            </li>
-          ))}
-        </ol>
+        <div className={`w-full overflow-y-auto ${ALTO_LISTA} mt-2`}>
+          <ol className="w-full flex flex-col">
+            {DISTRICT_CLUBS.map((club) => (
+              <li
+                key={club}
+                className="flex items-center gap-4 py-3 px-3 border-b border-rotary-ink/10"
+              >
+                <span className="w-8 shrink-0" />
+                <span className="flex-1 text-left text-lg text-rotary-ink/70">
+                  {club}
+                </span>
+                <span className="shrink-0 tabular-nums text-lg font-bold text-rotary-ink/30">
+                  0
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
 
         <p className="text-sm text-rotary-ink/60">
-          Y {restantes} clubes más. Por ahora van en orden alfabético; cuando
-          empiecen las ventas se ordenan por chicos vacunados.
+          Están los {DISTRICT_CLUBS.length}: deslizá la lista para verlos
+          todos. Por ahora van en orden alfabético; cuando empiecen las ventas
+          se ordenan por chicos vacunados.
         </p>
 
         <p className="text-sm text-rotary-ink/60 mt-2">
@@ -83,15 +89,20 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
 
   if (clubes.length === 0) return <CopaEnCero />;
 
-  // Cortar en el puesto 10 a secas puede dejar afuera a un club empatado
-  // con el ultimo que si entra, y eso se lee como arbitrario: si hay
-  // empate en el limite, entran todos los del mismo puesto.
-  let corte = Math.min(TOPE, clubes.length);
-  while (corte < clubes.length && clubes[corte].puesto === clubes[corte - 1].puesto) {
-    corte += 1;
-  }
-  const podio = clubes.slice(0, corte);
-  const restantes = clubes.length - podio.length;
+  // Los clubes que todavia no vendieron entran igual, en cero y al final:
+  // el que se ve en la tabla tiene motivo para moverse, el que no aparece
+  // no se entera de que esta jugando. Comparten todos el mismo puesto,
+  // que es el que sigue al ultimo que si vendio.
+  const conVentas = new Set(clubes.map((c) => c.club));
+  const puestoDeLosCeros = clubes.length + 1;
+  const enCero = DISTRICT_CLUBS.filter((club) => !conVentas.has(club)).map((club) => ({
+    club,
+    bonos: 0,
+    reservado: 0,
+    confirmado: 0,
+    puesto: puestoDeLosCeros,
+  }));
+  const tabla = [...clubes, ...enCero];
 
   // Fondo apenas tenido: abajo viene otra seccion blanca y si las dos
   // fueran blancas se leerian como una sola.
@@ -109,8 +120,9 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
           cada club.
         </p>
 
-        <ol className="w-full flex flex-col mt-2">
-          {podio.map((fila) => (
+        <div className={`w-full overflow-y-auto ${ALTO_LISTA} mt-2`}>
+          <ol className="w-full flex flex-col">
+            {tabla.map((fila) => (
             <li
               key={fila.club}
               className={`flex items-center gap-4 py-3 border-b border-rotary-ink/10 ${
@@ -133,16 +145,14 @@ export function RankingClubes({ filas }: { filas: FilaClub[] }) {
                 {childrenProtected(fila.reservado).toLocaleString("es-AR")}
               </span>
             </li>
-          ))}
-        </ol>
+            ))}
+          </ol>
+        </div>
 
-        {restantes > 0 && (
-          <p className="text-sm text-rotary-ink/60">
-            {restantes === 1
-              ? "Y un club más que ya está sumando."
-              : `Y ${restantes} clubes más que ya están sumando.`}
-          </p>
-        )}
+        <p className="text-sm text-rotary-ink/60">
+          Están los {DISTRICT_CLUBS.length} clubes del distrito: deslizá la
+          lista para verlos todos.
+        </p>
 
         {agrupados.length > 0 && (
           <p className="text-sm text-rotary-ink/60">

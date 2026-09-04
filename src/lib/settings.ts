@@ -17,3 +17,20 @@ export async function setFlag(key: string, value: boolean): Promise<void> {
     create: { key, value: String(value) },
   });
 }
+
+/**
+ * Prefijo de las claves con el telefono del delegado de cada club:
+ * `tel:cipolletti`. Van en la misma tabla de configuracion porque son
+ * exactamente eso, un dato suelto del subcomite, y no ameritan un modelo
+ * propio con su migracion.
+ */
+export const TEL_CLUB = "tel:";
+
+/** Telefonos cargados, por slug de club. */
+export async function telefonosDeClubes(): Promise<Record<string, string>> {
+  const filas = await prisma.setting.findMany({
+    where: { key: { startsWith: TEL_CLUB } },
+    select: { key: true, value: true },
+  });
+  return Object.fromEntries(filas.map((f) => [f.key.slice(TEL_CLUB.length), f.value]));
+}

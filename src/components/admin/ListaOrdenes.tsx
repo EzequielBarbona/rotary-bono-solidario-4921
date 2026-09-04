@@ -17,6 +17,7 @@ type AdminOrder = {
   expiresAt: string;
   confirmationSentAt: string | null;
   numbers: number[];
+  comprobanteRepetidoEn: number[];
 };
 
 /** Las pendientes primero: son las que hay que confirmar. */

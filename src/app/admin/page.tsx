@@ -40,6 +40,20 @@ export default async function AdminPage() {
     }),
   ]);
 
+  // Comprobantes repetidos: dos ordenes que subieron exactamente el mismo
+  // archivo. Es la forma mas comun de intentar pagar dos bonos con una
+  // sola transferencia, y tambien de mandar dos veces la misma foto sin
+  // mala intencion. Se avisa; decidir es de una persona.
+  const ordenesPorHash = new Map<string, number[]>();
+  for (const order of orders) {
+    if (!order.receiptHash) continue;
+    // Las canceladas no cuentan: ya se dieron de baja y ensuciarian el aviso.
+    if (order.status === "CANCELADO" || order.status === "EXPIRADO") continue;
+    const lista = ordenesPorHash.get(order.receiptHash) ?? [];
+    lista.push(order.id);
+    ordenesPorHash.set(order.receiptHash, lista);
+  }
+
   // El orden y el filtrado los hace ListaOrdenes en el navegador: buscar
   // por nombre tiene que responder en cada tecla, no en cada viaje al
   // servidor.
@@ -57,6 +71,10 @@ export default async function AdminPage() {
     confirmationSentAt: order.confirmationSentAt?.toISOString() ?? null,
     expiresAt: order.expiresAt.toISOString(),
     numbers: order.tickets.map((t) => t.number),
+    comprobanteRepetidoEn: (order.receiptHash
+      ? (ordenesPorHash.get(order.receiptHash) ?? [])
+      : []
+    ).filter((id) => id !== order.id),
   }));
 
   const countByStatus = Object.fromEntries(

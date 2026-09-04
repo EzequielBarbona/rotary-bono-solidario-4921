@@ -21,6 +21,8 @@ type AdminOrder = {
   expiresAt: string;
   confirmationSentAt: string | null;
   numbers: number[];
+  /** Números de otras órdenes que subieron exactamente el mismo comprobante. */
+  comprobanteRepetidoEn: number[];
 };
 
 /** Fecha y hora corta, para dejar constancia de cuando se aviso. */
@@ -213,6 +215,20 @@ export function OrderCard({
         <p>
           <span className="font-semibold">Total:</span> {formatArs(order.totalAmount)}
         </p>
+
+        {/* Mismo archivo de comprobante que otra orden. No se bloquea nada:
+            puede ser un error honesto (subir dos veces la misma foto para
+            dos bonos) o una transferencia usada dos veces. Lo decide una
+            persona mirando el resumen bancario, no el sistema. */}
+        {order.comprobanteRepetidoEn.length > 0 && (
+          <p className="mt-2 text-sm font-semibold text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {`⚠ El comprobante es idéntico al de ${
+              order.comprobanteRepetidoEn.length > 1
+                ? `las órdenes ${order.comprobanteRepetidoEn.map((n) => `#${n}`).join(", ")}`
+                : `la orden #${order.comprobanteRepetidoEn[0]}`
+            }. Cotejá contra el resumen bancario antes de confirmar.`}
+          </p>
+        )}
 
         {order.status === "PAGADO" && (
           <div className="mt-2 flex flex-col gap-2 items-start">

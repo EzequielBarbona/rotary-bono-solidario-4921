@@ -44,6 +44,11 @@ model Order {
   paymentRef       String?
   receiptImage     Bytes
   receiptMimeType  String
+  // Huella SHA-256 de la imagen del comprobante. Sirve para avisarle al
+  // subcomite cuando dos ordenes suben exactamente el mismo archivo, que
+  // es la forma mas comun de intentar pagar dos bonos con una sola
+  // transferencia. Nullable por las ordenes anteriores a esta columna.
+  receiptHash      String?
   createdAt        DateTime    @default(now())
   // Se sigue guardando como referencia de cuando se hizo la reserva, pero
   // ya no vence sola: una reserva solo se libera si un admin la da de baja.
@@ -52,6 +57,8 @@ model Order {
   // Es un checklist manual: el aviso se manda por WhatsApp a mano.
   confirmationSentAt DateTime?
   tickets          Ticket[]
+
+  @@index([receiptHash])
 }
 
 /// Interruptores que el subcomite prende y apaga desde el panel. Van a la

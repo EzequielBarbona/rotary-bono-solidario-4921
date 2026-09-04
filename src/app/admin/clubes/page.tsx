@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { isAdminSessionActive } from "@/lib/admin-auth";
 import { formatArs } from "@/lib/format";
-import { DISTRICT_CLUBS, rutaDeClub } from "@/lib/clubs";
+import { DISTRICT_CLUBS, rutaDeClub, slugDeClub } from "@/lib/clubs";
 import { raffleConfig } from "@/lib/config";
 import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
-import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
+import { getFlag, RANKING_PUBLICO, telefonosDeClubes } from "@/lib/settings";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { CopyButton } from "@/components/CopyButton";
+import { FilaClubDifusion } from "@/components/admin/FilaClubDifusion";
 import { PublicarRankingToggle } from "@/components/admin/PublicarRankingToggle";
 
 // Es un ranking en vivo: nunca cacheado.
@@ -17,9 +18,10 @@ export default async function VentasPorClubPage() {
     return <AdminLogin />;
   }
 
-  const [filas, publicado] = await Promise.all([
+  const [filas, publicado, telefonos] = await Promise.all([
     rankingPorClub(),
     getFlag(RANKING_PUBLICO),
+    telefonosDeClubes(),
   ]);
 
   const clubesConVentas = filas.filter((f) => !esGrupoAgrupado(f.club)).length;
@@ -71,16 +73,15 @@ export default async function VentasPorClubPage() {
             texto="Copiar link del distrito"
           />
         </p>
-        <ul className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1">
+        <ul className="mt-3 flex flex-col">
           {DISTRICT_CLUBS.map((club) => (
-            <li key={club} className="text-sm text-rotary-ink/80 py-0.5">
-              {club}
-              <CopyButton
-                value={`${raffleConfig.siteUrl}${rutaDeClub(club)}`}
-                label={`Copiar el link de invitación de ${club}`}
-                texto="Copiar link"
-              />
-            </li>
+            <FilaClubDifusion
+              key={club}
+              club={club}
+              enlace={`${raffleConfig.siteUrl}${rutaDeClub(club)}`}
+              volante={`${raffleConfig.siteUrl}/flyer/club/${slugDeClub(club)}`}
+              telefonoInicial={telefonos[slugDeClub(club)] ?? ""}
+            />
           ))}
         </ul>
       </details>
