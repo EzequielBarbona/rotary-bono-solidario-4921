@@ -77,6 +77,14 @@ export default async function AdminPage() {
     ).filter((id) => id !== order.id),
   }));
 
+  // El aviso tambien va arriba de todo: en la tarjeta de la orden solo lo
+  // ve quien llega scrolleando hasta ella, y con cientos de ordenes eso
+  // es no verlo nunca.
+  const gruposRepetidos = [...ordenesPorHash.values()]
+    .filter((ids) => ids.length > 1)
+    .map((ids) => [...ids].sort((a, b) => a - b))
+    .sort((a, b) => b[0] - a[0]);
+
   const countByStatus = Object.fromEntries(
     ticketCounts.map((c) => [c.status, c._count])
   ) as Record<string, number>;
@@ -84,9 +92,14 @@ export default async function AdminPage() {
 
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-extrabold text-rotary-ink">Panel de administración</h1>
-        <LogoutButton />
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-sm text-rotary-azure hover:underline">
+            ‹ Volver a la página principal
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 text-sm">
@@ -114,6 +127,24 @@ export default async function AdminPage() {
         .
       </p>
 
+      {gruposRepetidos.length > 0 && (
+        <div className="border border-red-300 bg-red-50 rounded-lg px-4 py-3 flex flex-col gap-1">
+          <p className="text-sm font-bold text-red-800">
+            {gruposRepetidos.length === 1
+              ? "⚠ Hay un comprobante repetido"
+              : `⚠ Hay ${gruposRepetidos.length} comprobantes repetidos`}
+          </p>
+          <p className="text-sm text-red-800">
+            {gruposRepetidos.map(enumerarOrdenes).join(" · ")}
+          </p>
+          <p className="text-xs text-red-800/80">
+            Esas órdenes subieron exactamente el mismo archivo. Puede ser una
+            transferencia usada dos veces o la misma foto mandada por error:
+            cotejá contra el resumen bancario antes de confirmarlas.
+          </p>
+        </div>
+      )}
+
       <ListaOrdenes
         ordenes={ordenesParaLista}
         drawDateLabel={formatDrawDate(raffleConfig.drawDate)}
@@ -127,6 +158,13 @@ export default async function AdminPage() {
       </Link>
     </main>
   );
+}
+
+/** "#12 y #15", "#20, #22 y #23": con "y" repetida se lee pésimo. */
+function enumerarOrdenes(ids: number[]) {
+  const etiquetas = ids.map((id) => `#${id}`);
+  const ultima = etiquetas.pop();
+  return etiquetas.length ? `${etiquetas.join(", ")} y ${ultima}` : (ultima ?? "");
 }
 
 function Stat({
