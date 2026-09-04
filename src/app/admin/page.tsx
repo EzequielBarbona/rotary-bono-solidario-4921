@@ -6,9 +6,8 @@ import { raffleConfig } from "@/lib/config";
 import { startOfArtDay, startOfArtWeek } from "@/lib/dates";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { LogoutButton } from "@/components/admin/LogoutButton";
-import { OrderCard } from "@/components/admin/OrderCard";
+import { ListaOrdenes } from "@/components/admin/ListaOrdenes";
 
-const STATUS_PRIORITY = { PENDIENTE: 0, PAGADO: 1, EXPIRADO: 2, CANCELADO: 3 } as const;
 
 export default async function AdminPage() {
   const authorized = await isAdminSessionActive();
@@ -41,11 +40,24 @@ export default async function AdminPage() {
     }),
   ]);
 
-  const sortedOrders = [...orders].sort((a, b) => {
-    const byStatus = STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status];
-    if (byStatus !== 0) return byStatus;
-    return b.createdAt.getTime() - a.createdAt.getTime();
-  });
+  // El orden y el filtrado los hace ListaOrdenes en el navegador: buscar
+  // por nombre tiene que responder en cada tecla, no en cada viaje al
+  // servidor.
+  const ordenesParaLista = orders.map((order) => ({
+    id: order.id,
+    buyerName: order.buyerName,
+    buyerEmail: order.buyerEmail,
+    buyerPhone: order.buyerPhone,
+    buyerCuit: order.buyerCuit,
+    buyerClub: order.buyerClub,
+    ticketCount: order.ticketCount,
+    totalAmount: order.totalAmount,
+    status: order.status,
+    createdAt: order.createdAt.toISOString(),
+    confirmationSentAt: order.confirmationSentAt?.toISOString() ?? null,
+    expiresAt: order.expiresAt.toISOString(),
+    numbers: order.tickets.map((t) => t.number),
+  }));
 
   const countByStatus = Object.fromEntries(
     ticketCounts.map((c) => [c.status, c._count])
@@ -84,32 +96,10 @@ export default async function AdminPage() {
         .
       </p>
 
-      <div className="flex flex-col gap-4">
-        {sortedOrders.length === 0 && (
-          <p className="text-base text-rotary-ink/60">Todavía no hay órdenes.</p>
-        )}
-        {sortedOrders.map((order) => (
-          <OrderCard
-            key={order.id}
-            drawDateLabel={formatDrawDate(raffleConfig.drawDate)}
-            order={{
-              id: order.id,
-              buyerName: order.buyerName,
-              buyerEmail: order.buyerEmail,
-              buyerPhone: order.buyerPhone,
-              buyerCuit: order.buyerCuit,
-              buyerClub: order.buyerClub,
-              ticketCount: order.ticketCount,
-              totalAmount: order.totalAmount,
-              status: order.status,
-              createdAt: order.createdAt.toISOString(),
-              confirmationSentAt: order.confirmationSentAt?.toISOString() ?? null,
-              expiresAt: order.expiresAt.toISOString(),
-              numbers: order.tickets.map((t) => t.number),
-            }}
-          />
-        ))}
-      </div>
+      <ListaOrdenes
+        ordenes={ordenesParaLista}
+        drawDateLabel={formatDrawDate(raffleConfig.drawDate)}
+      />
 
       <Link
         href="/"
