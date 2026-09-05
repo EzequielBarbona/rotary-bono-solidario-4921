@@ -247,6 +247,63 @@ export function BuyerForm({
           />
         </label>
 
+        {/* Es el paso donde mas gente se traba: no saben de donde sacar el
+            comprobante ni que el campo pide una imagen. La ayuda va abierta
+            de par en par y no escondida en el pie, porque quien se traba acá
+            abandona la compra. */}
+        <details className="border border-rotary-azure/25 bg-rotary-azure/5 rounded-lg px-3 py-2 -mt-2">
+          <summary className="cursor-pointer text-sm font-semibold text-rotary-azure hover:underline">
+            Se me dificulta subir el comprobante
+          </summary>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-rotary-ink/80">
+            <p>
+              La forma más fácil es{" "}
+              <span className="font-bold">sacarle una captura de pantalla</span>{" "}
+              al comprobante en tu celular.
+            </p>
+            <ol className="flex flex-col gap-2 list-decimal pl-5">
+              <li>
+                Abrí la app del banco o de Mercado Pago donde hiciste la
+                transferencia y buscá el comprobante.
+              </li>
+              <li>
+                Sacá la captura:
+                <br />
+                <span className="font-semibold">iPhone:</span> apretá juntos el
+                botón lateral y el de subir volumen.
+                <br />
+                <span className="font-semibold">Android:</span> apretá juntos el
+                botón de encendido y el de bajar volumen.
+              </li>
+              <li>
+                Volvé a esta página y tocá el botón de acá arriba para elegir el
+                archivo.
+              </li>
+              <li>
+                Elegí <span className="font-semibold">Fotos</span> o{" "}
+                <span className="font-semibold">Galería</span> y tocá la captura
+                que acabás de sacar: es la primera de todas.
+              </li>
+            </ol>
+            <p className="text-rotary-ink/70">
+              Tiene que ser una imagen. Si el comprobante te quedó en PDF,
+              abrilo y sacale una captura igual que arriba.
+            </p>
+            <p className="text-rotary-ink/70">
+              Si aun así no podés,{" "}
+              <a
+                href="https://wa.me/5492994736968?text=Hola%2C%20no%20puedo%20subir%20el%20comprobante%20del%20bono"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-rotary-azure hover:underline"
+              >
+                escribinos por WhatsApp
+              </a>{" "}
+              y lo resolvemos con vos.
+            </p>
+          </div>
+        </details>
+
         <details className="text-xs text-rotary-ink/50">
           <summary className="cursor-pointer hover:text-rotary-ink/75 transition-colors">
             ¿Por qué te pedimos estos datos?
