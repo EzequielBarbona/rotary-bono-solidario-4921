@@ -176,11 +176,17 @@ export function OrderCard({
         className="shrink-0"
       >
         {/* next/image no aporta nada aca: es una miniatura privada servida por
-            una API protegida, no un asset publico que valga la pena optimizar. */}
+            una API protegida, no un asset publico que valga la pena optimizar.
+
+            loading="lazy" no es cosmetico: cada miniatura es una lectura de
+            la foto completa en la base. Sin esto, abrir el panel con
+            cientos de ordenes las pedia todas de golpe. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={`/api/orders/${order.id}/receipt`}
           alt={`Comprobante orden #${order.id}`}
+          loading="lazy"
+          decoding="async"
           className="w-28 h-28 object-cover rounded-lg border border-rotary-ink/10 bg-rotary-ink/5"
         />
       </a>

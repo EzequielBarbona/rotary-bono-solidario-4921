@@ -16,7 +16,10 @@ export async function POST(
     return NextResponse.json({ error: "Orden inválida." }, { status: 400 });
   }
 
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { id: true, status: true },
+  });
   if (!order) {
     return NextResponse.json({ error: "Orden no encontrada." }, { status: 404 });
   }

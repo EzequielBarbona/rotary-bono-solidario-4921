@@ -28,7 +28,10 @@ export async function GET(
   return new NextResponse(new Uint8Array(order.receiptImage), {
     headers: {
       "Content-Type": order.receiptMimeType,
-      "Cache-Control": "private, no-store",
+      // El comprobante de una orden no cambia nunca. Con no-store el
+      // navegador volvia a pedir la foto entera en cada recarga del
+      // panel, y cada pedido es una lectura de la base.
+      "Cache-Control": "private, max-age=86400, immutable",
     },
   });
 }

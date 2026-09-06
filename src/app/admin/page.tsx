@@ -25,8 +25,27 @@ export default async function AdminPage() {
   const claimedStatus: { in: ("PENDIENTE" | "PAGADO")[] } = { in: ["PENDIENTE", "PAGADO"] };
 
   const [orders, ticketCounts, todayTotal, weekTotal] = await Promise.all([
+    // El select es explicito a proposito: sin el, Prisma trae TODAS las
+    // columnas, receiptImage incluida, o sea la foto entera del
+    // comprobante de cada orden en cada carga del panel. Con fotos de
+    // celular y cientos de ordenes eso son cientos de megas por visita.
     prisma.order.findMany({
-      include: { tickets: { select: { number: true } } },
+      select: {
+        id: true,
+        buyerName: true,
+        buyerEmail: true,
+        buyerPhone: true,
+        buyerCuit: true,
+        buyerClub: true,
+        ticketCount: true,
+        totalAmount: true,
+        status: true,
+        createdAt: true,
+        expiresAt: true,
+        confirmationSentAt: true,
+        receiptHash: true,
+        tickets: { select: { number: true } },
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.ticket.groupBy({ by: ["status"], _count: true }),

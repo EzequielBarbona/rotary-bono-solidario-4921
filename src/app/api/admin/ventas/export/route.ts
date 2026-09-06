@@ -32,8 +32,23 @@ export async function GET(request: Request) {
     return new Response("No autorizado.", { status: 401 });
   }
 
+  // Sin select explicito Prisma traeria tambien receiptImage, que no
+  // entra en la planilla: seria bajarse todas las fotos por cada Excel.
   const ordenes = await prisma.order.findMany({
-    include: { tickets: { select: { number: true }, orderBy: { number: "asc" } } },
+    select: {
+      id: true,
+      createdAt: true,
+      status: true,
+      buyerName: true,
+      buyerEmail: true,
+      buyerPhone: true,
+      buyerCuit: true,
+      buyerClub: true,
+      ticketCount: true,
+      totalAmount: true,
+      confirmationSentAt: true,
+      tickets: { select: { number: true }, orderBy: { number: "asc" } },
+    },
     orderBy: { createdAt: "asc" },
   });
 
