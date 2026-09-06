@@ -11,6 +11,7 @@ import { CompartirInstagram } from "@/components/CompartirInstagram";
 import { rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { conLimite } from "@/lib/con-limite";
+import { conMemoriaCorta } from "@/lib/memoria-corta";
 import { RUTA_DISTRITO } from "@/lib/clubs";
 
 // El contador de vacunas tiene que reflejar las ordenes en tiempo real,

@@ -41,10 +41,15 @@ export default function OrderPage({
     }
 
     load();
-    const interval = setInterval(load, 10_000);
+    // Un minuto, y no para siempre: confirmar un pago lleva horas, no
+    // segundos, y el comprador recibe ademas un WhatsApp. Cada sondeo es
+    // una consulta a la base por cada pantalla abierta.
+    const interval = setInterval(load, 60_000);
+    const corte = setTimeout(() => clearInterval(interval), 30 * 60_000);
     return () => {
       cancelled = true;
       clearInterval(interval);
+      clearTimeout(corte);
     };
   }, [id]);
 
