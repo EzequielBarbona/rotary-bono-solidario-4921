@@ -1,13 +1,10 @@
 import Link from "next/link";
 import { isAdminSessionActive } from "@/lib/admin-auth";
 import { formatArs } from "@/lib/format";
-import { DISTRICT_CLUBS, rutaDeClub, slugDeClub } from "@/lib/clubs";
-import { raffleConfig } from "@/lib/config";
+import { DISTRICT_CLUBS } from "@/lib/clubs";
 import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
-import { getFlag, RANKING_PUBLICO, telefonosDeClubes } from "@/lib/settings";
+import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { AdminLogin } from "@/components/admin/AdminLogin";
-import { CopyButton } from "@/components/CopyButton";
-import { FilaClubDifusion } from "@/components/admin/FilaClubDifusion";
 import { PublicarRankingToggle } from "@/components/admin/PublicarRankingToggle";
 
 // Es un ranking en vivo: nunca cacheado.
@@ -18,10 +15,9 @@ export default async function VentasPorClubPage() {
     return <AdminLogin />;
   }
 
-  const [filas, publicado, telefonos] = await Promise.all([
+  const [filas, publicado] = await Promise.all([
     rankingPorClub(),
     getFlag(RANKING_PUBLICO),
-    telefonosDeClubes(),
   ]);
 
   const clubesConVentas = filas.filter((f) => !esGrupoAgrupado(f.club)).length;
@@ -34,6 +30,9 @@ export default async function VentasPorClubPage() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-extrabold text-rotary-ink">Ventas por club</h1>
         <div className="flex items-center gap-4">
+          <Link href="/admin/difusion" className="text-sm text-rotary-azure hover:underline">
+            Difusión por club
+          </Link>
           <Link href="/admin/ventas" className="text-sm text-rotary-azure hover:underline">
             Ventas por semana
           </Link>
@@ -52,39 +51,14 @@ export default async function VentasPorClubPage() {
         ranking entre clubes del 4921.
       </p>
 
-      {/* Los links tienen que estar acá, y para los 121 clubes: el que
-          todavía no vendió nada es justamente el que más necesita el suyo,
-          y si el presidente se lo tiene que pedir a alguien no lo usa. */}
-      <details className="border border-rotary-ink/10 rounded-lg px-4 py-3">
-        <summary className="cursor-pointer text-sm font-bold text-rotary-ink">
-          Links de invitación de cada club
-        </summary>
-        <p className="mt-3 text-sm text-rotary-ink/70">
-          Mandale a cada club el suyo. Quien compre entrando por ese link
-          suma a ese club aunque no sea rotario y no sepa qué contestar en el
-          formulario.
-        </p>
-        <p className="mt-3 text-sm text-rotary-ink/70">
-          Para la difusión del distrito va este otro, que no acredita a
-          ningún club:
-          <CopyButton
-            value={`${raffleConfig.siteUrl}/sumate`}
-            label="Copiar el link de difusión del distrito"
-            texto="Copiar link del distrito"
-          />
-        </p>
-        <ul className="mt-3 flex flex-col">
-          {DISTRICT_CLUBS.map((club) => (
-            <FilaClubDifusion
-              key={club}
-              club={club}
-              enlace={`${raffleConfig.siteUrl}${rutaDeClub(club)}`}
-              volante={`${raffleConfig.siteUrl}/flyer/club/${slugDeClub(club)}`}
-              telefonoInicial={telefonos[slugDeClub(club)] ?? ""}
-            />
-          ))}
-        </ul>
-      </details>
+      <p className="text-sm text-rotary-ink/70">
+        Los links de cada club, los volantes imprimibles y los contactos de
+        sus autoridades están en{" "}
+        <Link href="/admin/difusion" className="text-rotary-azure hover:underline">
+          Difusión por club
+        </Link>
+        .
+      </p>
 
       {filas.length === 0 ? (
         <p className="text-base text-rotary-ink/60">Todavía no hay ventas registradas.</p>

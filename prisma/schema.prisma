@@ -69,3 +69,31 @@ model Setting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+/// Datos del club tomados del padron de autoridades del distrito.
+/// La clave es el nombre tal cual figura en DISTRICT_CLUBS: es el mismo
+/// texto que guardan las ordenes, asi que cruza sin traducciones.
+model ClubDatos {
+  club         String         @id
+  numeroRotary String?
+  diaReunion   String?
+  emailClub    String?
+  contactos    ClubContacto[]
+}
+
+/// Una autoridad del club. Son varias por club (presidente, secretario,
+/// tesorero) y por eso van en su propia tabla y no en columnas.
+model ClubContacto {
+  id        Int       @id @default(autoincrement())
+  club      String
+  cargo     String
+  nombre    String
+  periodo   String?
+  email     String?
+  telefono  String?
+  /// Cuando un admin marco que ya le mando el material de difusion.
+  avisadoAt DateTime?
+  datos     ClubDatos @relation(fields: [club], references: [club], onDelete: Cascade)
+
+  @@index([club])
+}
