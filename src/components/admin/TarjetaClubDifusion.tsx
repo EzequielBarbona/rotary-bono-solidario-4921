@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { toWhatsAppNumber } from "@/lib/phone";
+import { FormularioContacto } from "@/components/admin/FormularioContacto";
 import type { ClubParaDifusion, ContactoClub } from "@/lib/difusion";
 
 /** Fecha y hora corta, para dejar constancia de cuándo se avisó. */
@@ -29,9 +31,34 @@ function Contacto({
   volante: string;
   bonos: number;
 }) {
+  const router = useRouter();
   const [avisadoAt, setAvisadoAt] = useState(contacto.avisadoAt);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editando, setEditando] = useState(false);
+  const [confirmandoBaja, setConfirmandoBaja] = useState(false);
+
+  async function borrar() {
+    setGuardando(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/contacto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ op: "borrar", id: contacto.id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "No se pudo borrar.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Error de conexión.");
+    } finally {
+      setGuardando(false);
+    }
+  }
 
   const numero = toWhatsAppNumber(contacto.telefono ?? "");
 
@@ -148,8 +175,57 @@ function Contacto({
               : "Marcar avisado"}
         </button>
 
+        <button
+          type="button"
+          onClick={() => setEditando((v) => !v)}
+          className="text-xs text-rotary-ink/60 border border-rotary-ink/20 rounded-full px-2 py-1 hover:bg-rotary-ink/5"
+          title={`Editar los datos de ${contacto.nombre}`}
+        >
+          ✎ Editar
+        </button>
+
+        {/* La baja pide confirmacion: borrar un contacto se lleva puesta
+            tambien la marca de avisado, y no hay como recuperarla. */}
+        {confirmandoBaja ? (
+          <span className="flex items-center gap-1 text-xs">
+            <span className="text-rotary-ink/70">¿Seguro?</span>
+            <button
+              type="button"
+              onClick={borrar}
+              disabled={guardando}
+              className="font-bold text-white bg-red-600 rounded-full px-2 py-1 disabled:opacity-60"
+            >
+              Sí, borrar
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmandoBaja(false)}
+              className="text-rotary-ink/60 hover:underline"
+            >
+              No
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmandoBaja(true)}
+            className="text-xs text-rotary-ink/50 hover:text-red-700"
+            title={`Borrar a ${contacto.nombre}`}
+          >
+            Borrar
+          </button>
+        )}
+
         {error && <span className="text-xs text-red-600">{error}</span>}
       </div>
+
+      {editando && (
+        <FormularioContacto
+          club={club}
+          contacto={contacto}
+          onListo={() => setEditando(false)}
+        />
+      )}
     </li>
   );
 }
@@ -163,6 +239,7 @@ export function TarjetaClubDifusion({
 }) {
   const { club, contactos, bonos, chicos, puesto } = datos;
   const avisados = contactos.filter((c) => c.avisadoAt).length;
+  const [agregando, setAgregando] = useState(false);
 
   return (
     <div className="border border-rotary-ink/10 rounded-xl p-4 flex flex-col gap-2">
@@ -238,8 +315,20 @@ export function TarjetaClubDifusion({
       ) : (
         <p className="mt-1 text-xs text-rotary-ink/50 border-t border-rotary-ink/10 pt-2">
           No tenemos autoridades cargadas para este club. El padrón que nos
-          pasaron cubre solo los clubes rotarios.
+          pasaron cubre solo los clubes rotarios: cargalas a mano acá abajo.
         </p>
+      )}
+
+      {agregando ? (
+        <FormularioContacto club={club} onListo={() => setAgregando(false)} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAgregando(true)}
+          className="self-start text-xs font-semibold text-rotary-azure border border-rotary-azure/40 rounded-full px-3 py-1 hover:bg-rotary-azure/10 transition-colors"
+        >
+          + Agregar autoridad
+        </button>
       )}
     </div>
   );
