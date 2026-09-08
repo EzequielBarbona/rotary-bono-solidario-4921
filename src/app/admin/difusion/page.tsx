@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { isAdminSessionActive } from "@/lib/admin-auth";
 import { raffleConfig } from "@/lib/config";
 import { RUTA_DISTRITO } from "@/lib/clubs";
@@ -18,17 +17,7 @@ export default async function DifusionPage() {
 
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-extrabold text-rotary-ink">Difusión por club</h1>
-        <div className="flex items-center gap-4">
-          <Link href="/admin/clubes" className="text-sm text-rotary-azure hover:underline">
-            Ventas por club
-          </Link>
-          <Link href="/admin" className="text-sm text-rotary-azure hover:underline">
-            ‹ Volver al panel
-          </Link>
-        </div>
-      </div>
+      <h1 className="text-2xl font-extrabold text-rotary-ink">Difusión por club</h1>
 
       <p className="text-sm text-rotary-ink/70">
         Cada club con su link, su volante imprimible y sus autoridades. Quien
@@ -49,13 +38,6 @@ export default async function DifusionPage() {
         cubre solo los clubes rotarios: los Rotaract y los satélites aparecen
         con su link y su volante, pero sin contactos.
       </p>
-
-      <Link
-        href="/admin"
-        className="self-center text-sm text-rotary-azure hover:underline mt-2"
-      >
-        ‹ Volver al panel
-      </Link>
     </main>
   );
 }

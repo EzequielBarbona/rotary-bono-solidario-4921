@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { isAdminSessionActive } from "@/lib/admin-auth";
 import { formatArs } from "@/lib/format";
 import { DISTRICT_CLUBS } from "@/lib/clubs";
@@ -27,20 +26,7 @@ export default async function VentasPorClubPage() {
 
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-extrabold text-rotary-ink">Ventas por club</h1>
-        <div className="flex items-center gap-4">
-          <Link href="/admin/difusion" className="text-sm text-rotary-azure hover:underline">
-            Difusión por club
-          </Link>
-          <Link href="/admin/ventas" className="text-sm text-rotary-azure hover:underline">
-            Ventas por semana
-          </Link>
-          <Link href="/admin" className="text-sm text-rotary-azure hover:underline">
-            ‹ Volver al panel
-          </Link>
-        </div>
-      </div>
+      <h1 className="text-2xl font-extrabold text-rotary-ink">Ventas por club</h1>
 
       <PublicarRankingToggle inicial={publicado} />
 
@@ -49,15 +35,6 @@ export default async function VentasPorClubPage() {
         no. Quienes indicaron un club de otro distrito o llegaron por su
         cuenta aparecen agrupados al final: suman al total recaudado, no al
         ranking entre clubes del 4921.
-      </p>
-
-      <p className="text-sm text-rotary-ink/70">
-        Los links de cada club, los volantes imprimibles y los contactos de
-        sus autoridades están en{" "}
-        <Link href="/admin/difusion" className="text-rotary-azure hover:underline">
-          Difusión por club
-        </Link>
-        .
       </p>
 
       {filas.length === 0 ? (

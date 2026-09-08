@@ -1,11 +1,9 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { isAdminSessionActive } from "@/lib/admin-auth";
 import { formatArs, formatDrawDate } from "@/lib/format";
 import { raffleConfig } from "@/lib/config";
 import { startOfArtDay, startOfArtWeek } from "@/lib/dates";
 import { AdminLogin } from "@/components/admin/AdminLogin";
-import { LogoutButton } from "@/components/admin/LogoutButton";
 import { ListaOrdenes } from "@/components/admin/ListaOrdenes";
 
 
@@ -111,15 +109,7 @@ export default async function AdminPage() {
 
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-extrabold text-rotary-ink">Panel de administración</h1>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-sm text-rotary-azure hover:underline">
-            ‹ Volver a la página principal
-          </Link>
-          <LogoutButton />
-        </div>
-      </div>
+      <h1 className="text-2xl font-extrabold text-rotary-ink">Órdenes</h1>
 
       <div className="flex flex-wrap gap-3 text-sm">
         <Stat label="Vendidos" value={countByStatus.VENDIDO ?? 0} />
@@ -134,16 +124,7 @@ export default async function AdminPage() {
       </div>
       <p className="text-xs text-rotary-ink/50 -mt-3">
         Incluye reservas todavía no confirmadas por un admin, para poder cruzarlo
-        contra el resumen bancario del día. Estos dos números se mueven todo el
-        tiempo:{" "}
-        <Link href="/admin/ventas" className="text-rotary-azure hover:underline">
-          mirá las ventas semana por semana
-        </Link>{" "}
-        para ver la serie cerrada, o{" "}
-        <Link href="/admin/clubes" className="text-rotary-azure hover:underline">
-          el ranking por club
-        </Link>
-        .
+        contra el resumen bancario del día.
       </p>
 
       {gruposRepetidos.length > 0 && (
@@ -168,13 +149,6 @@ export default async function AdminPage() {
         ordenes={ordenesParaLista}
         drawDateLabel={formatDrawDate(raffleConfig.drawDate)}
       />
-
-      <Link
-        href="/"
-        className="self-center text-sm text-rotary-azure hover:underline mt-4"
-      >
-        ‹ Volver a la página principal
-      </Link>
     </main>
   );
 }
