@@ -159,12 +159,12 @@ export async function pdfDeAutoridades(clubes: ClubParaDifusion[]) {
   lapiz.y -= 13;
   escribir(
     lapiz,
-    "El padron del distrito trae presidente, secretario y tesorero, y deja estos clubes en blanco.",
+    "Los datos salen del padron que paso el distrito y de la ficha de cada club en My Rotary.",
     0,
     { tam: 8.5, color: GRIS, ancho: ANCHO_UTIL }
   );
   lapiz.y -= 10;
-  escribir(lapiz, "Los vicepresidentes no figuran en ningun club: hay que cargarlos a mano.", 0, {
+  escribir(lapiz, "Estos clubes no tienen ninguna autoridad cargada en ninguna de las dos fuentes:", 0, {
     tam: 8.5,
     color: GRIS,
     ancho: ANCHO_UTIL,
