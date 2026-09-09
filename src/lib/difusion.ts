@@ -30,7 +30,7 @@ export type ClubParaDifusion = {
 };
 
 /** Los cargos se muestran en el orden en que se los busca, no alfabético. */
-const ORDEN_CARGOS = ["Presidente", "Secretario", "Tesorero"];
+const ORDEN_CARGOS = ["Presidente", "Vicepresidente", "Secretario", "Tesorero"];
 
 /**
  * Todo lo que hace falta para salir a mover un club: sus datos, sus

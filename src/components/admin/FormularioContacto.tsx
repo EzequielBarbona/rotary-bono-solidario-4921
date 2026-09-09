@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ContactoClub } from "@/lib/difusion";
 
-/** Los tres que trae el padrón, sugeridos pero no obligatorios. */
-const CARGOS_SUGERIDOS = ["Presidente", "Secretario", "Tesorero"];
+/** Los cuatro cargos de mesa directiva, sugeridos pero no obligatorios.
+ *  El padrón del distrito solo trae tres: el vicepresidente va siempre a
+ *  mano, así que conviene tenerlo a un clic. */
+const CARGOS_SUGERIDOS = ["Presidente", "Vicepresidente", "Secretario", "Tesorero"];
 const PERIODO_ACTUAL = "2026-2027";
 
 /**
