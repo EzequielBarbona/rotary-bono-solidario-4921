@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
+import { toWhatsAppNumber } from "@/lib/phone";
 import { TarjetaClubDifusion } from "@/components/admin/TarjetaClubDifusion";
 import type { ClubParaDifusion } from "@/lib/difusion";
 
@@ -67,11 +68,27 @@ export function PanelDifusion({
   );
   const vendieron = clubes.filter((c) => c.bonos > 0).length;
 
+  // Las autoridades que salieron de My Rotary vinieron sin telefono, y a
+  // esas no se les puede mandar el material por WhatsApp: contra el total
+  // el avance siempre se va a ver peor de lo que es. Este es el universo
+  // que realmente se puede alcanzar hoy, con el mismo criterio que usa el
+  // boton de cada contacto: si toWhatsAppNumber no arma el numero, el
+  // boton esta apagado y la autoridad no cuenta.
+  const alcanzables = clubes.flatMap((c) =>
+    c.contactos.filter((k) => toWhatsAppNumber(k.telefono ?? ""))
+  );
+  const avisadosConTelefono = alcanzables.filter((k) => k.avisadoAt).length;
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap gap-3 text-sm">
         <Dato valor={`${vendieron}/${clubes.length}`} etiqueta="clubes con ventas" />
         <Dato valor={`${avisados}/${totalContactos}`} etiqueta="autoridades avisadas" destacado={avisados < totalContactos} />
+        <Dato
+          valor={`${avisadosConTelefono}/${alcanzables.length}`}
+          etiqueta="autoridades avisadas con teléfono"
+          destacado={avisadosConTelefono < alcanzables.length}
+        />
         <Dato valor={conContactos.length} etiqueta="clubes con autoridades cargadas" />
       </div>
 
