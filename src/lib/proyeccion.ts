@@ -17,14 +17,14 @@ export type Proyeccion = {
   /** Ritmo con el que se proyecta, y de donde salio. */
   ritmoUsado: number;
   usaHistorico: boolean;
-  /** Fecha estimada de agotar los 1000, o null si al ritmo actual no llega nunca. */
-  fechaEstimada: Date | null;
   /** Dias que faltan para el sorteo, o null si todavia no hay fecha. */
   diasHastaSorteo: number | null;
+  /** Bonos vendidos que habria el dia del sorteo si el ritmo no cambia. */
+  proyectadoAlSorteo: number | null;
+  /** Los que quedarian sin vender ese dia. Cero si se llega a la meta. */
+  faltanteAlSorteo: number | null;
   /** Bonos por dia que hacen falta para llegar al sorteo con todo vendido. */
   ritmoNecesario: number | null;
-  /** La proyeccion cae despues del sorteo. */
-  llegaTarde: boolean;
   completo: boolean;
 };
 
@@ -36,8 +36,13 @@ function diasEntre(desde: Date, hasta: Date): number {
 }
 
 /**
- * Proyeccion de cuando se completan los 1000 bonos y a que ritmo habria
- * que vender para llegar al sorteo con todo vendido.
+ * Cuantos bonos habria vendidos el dia del sorteo si el ritmo no cambia,
+ * y a que ritmo habria que ir para llegar a la meta.
+ *
+ * La pregunta no es que dia se agotan los 1000: la fecha del sorteo es
+ * fija y lo que se decide mirando esto es si hay que apretar la difusion
+ * esta semana. Una fecha de agotamiento posterior al sorteo no dice
+ * cuanto falta; un numero de bonos al 24 de octubre, si.
  *
  * El ritmo de referencia son los ultimos 7 dias y no el promedio desde el
  * arranque: en una venta que dura meses, lo que paso hace ocho semanas no
@@ -85,28 +90,26 @@ export function proyectarVentas({
   const ritmoUsado = usaHistorico ? ritmoHistorico : ritmoReciente;
 
   const completo = restantes === 0;
-  const fechaEstimada =
-    completo || ritmoUsado <= 0
-      ? null
-      : new Date(
-          startOfArtDay(ahora).getTime() +
-            Math.ceil(restantes / ritmoUsado) * DIA_MS
-        );
 
   const diasHastaSorteo = drawDate.trim()
     ? diasEntre(ahora, new Date(`${drawDate}T12:00:00.000Z`))
     : null;
+
+  // Se topea en la meta: proyectar 1400 de 1000 no informa nada, y el
+  // dato que importa cuando sobra ritmo es que se llega, no cuanto.
+  const proyectadoAlSorteo =
+    diasHastaSorteo === null
+      ? null
+      : Math.min(totalBonos, vendidos + Math.round(ritmoUsado * Math.max(0, diasHastaSorteo)));
+
+  const faltanteAlSorteo =
+    proyectadoAlSorteo === null ? null : totalBonos - proyectadoAlSorteo;
 
   // Si el sorteo ya pasó o es hoy no tiene sentido pedir un ritmo diario.
   const ritmoNecesario =
     diasHastaSorteo !== null && diasHastaSorteo > 0 && !completo
       ? restantes / diasHastaSorteo
       : null;
-
-  const llegaTarde =
-    fechaEstimada !== null &&
-    diasHastaSorteo !== null &&
-    diasEntre(ahora, fechaEstimada) > diasHastaSorteo;
 
   return {
     vendidos,
@@ -115,10 +118,10 @@ export function proyectarVentas({
     ritmoHistorico,
     ritmoUsado,
     usaHistorico,
-    fechaEstimada,
     diasHastaSorteo,
+    proyectadoAlSorteo,
+    faltanteAlSorteo,
     ritmoNecesario,
-    llegaTarde,
     completo,
   };
 }
