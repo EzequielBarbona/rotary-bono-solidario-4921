@@ -93,8 +93,14 @@ export function ProyeccionVentas({
           <span className="text-6xl font-extrabold leading-none tabular-nums text-rotary-ink">
             {proyectadoAlSorteo}
           </span>
+          {/* Que ritmo se uso va en la oracion y no solo en la cifra de
+              abajo: son dos ritmos distintos en pantalla y sin decirlo
+              no se sabe cual de los dos multiplico este numero. */}
           <span className="text-base text-rotary-ink/60 pb-1">
-            de {totalBonos} bonos si se mantiene el ritmo
+            de {totalBonos} bonos si se mantiene el ritmo{" "}
+            {usaHistorico
+              ? "promedio desde la primera venta"
+              : "de los últimos 7 días"}
           </span>
         </div>
       )}
