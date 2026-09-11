@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePurchase } from "@/lib/purchase-context";
 import { formatArs } from "@/lib/format";
@@ -36,6 +36,35 @@ export function BuyerForm({
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /*
+   * El cartel de error vive arriba del formulario y el boton de enviar
+   * abajo: en un celular quedan a una pantalla de distancia. Quien
+   * escribe mal el CUIT aprieta "Enviar", no ve que paso nada, vuelve a
+   * apretar y termina abandonando la compra. Por eso al fallar llevamos
+   * la pantalla hasta el cartel.
+   *
+   * El contador sube en cada intento fallido aunque el mensaje sea el
+   * mismo: si aprieta dos veces con el CUIT igual de mal, la pantalla
+   * tiene que subir las dos veces.
+   */
+  const [intentoFallido, setIntentoFallido] = useState(0);
+  const cartelError = useRef<HTMLParagraphElement>(null);
+
+  function marcarError(mensaje: string) {
+    setError(mensaje);
+    setIntentoFallido((n) => n + 1);
+  }
+
+  useEffect(() => {
+    if (!error) return;
+    const cartel = cartelError.current;
+    if (!cartel) return;
+    cartel.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Ademas de mover la pantalla, mueve el foco: en un lector de
+    // pantalla el mensaje se lee, y el teclado queda a un tab de los
+    // campos que hay que corregir.
+    cartel.focus({ preventScroll: true });
+  }, [error, intentoFallido]);
 
   const missingSelection = !quantity || selectedNumbers.length !== quantity;
 
@@ -60,7 +89,7 @@ export function BuyerForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!receiptFile) {
-      setError("Subí una captura del comprobante de transferencia.");
+      marcarError("Subí una captura del comprobante de transferencia.");
       return;
     }
     setSubmitting(true);
@@ -78,12 +107,12 @@ export function BuyerForm({
       const res = await fetch("/api/reserve", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "No se pudo completar la reserva.");
+        marcarError(data.error ?? "No se pudo completar la reserva.");
         return;
       }
       router.push(`/orden/${data.orderId}`);
     } catch {
-      setError("Error de conexión. Intentá de nuevo.");
+      marcarError("Error de conexión. Intentá de nuevo.");
     } finally {
       setSubmitting(false);
     }
@@ -147,7 +176,20 @@ export function BuyerForm({
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {/* Recuadro y no una linea fina de texto: el reclamo fue que el
+            error pasaba desapercibido, y media pantalla mas arriba un
+            renglon rojo chico se pierde igual. */}
+        {error && (
+          <p
+            ref={cartelError}
+            role="alert"
+            aria-live="assertive"
+            tabIndex={-1}
+            className="border border-red-300 bg-red-50 text-red-800 font-semibold rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
+          >
+            {error}
+          </p>
+        )}
         <input
           required
           placeholder="Nombre y apellido"
