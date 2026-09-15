@@ -77,6 +77,9 @@ function Contacto({
         return;
       }
       setAvisadoAt(data.avisadoAt);
+      // Refresca para que el aviso de los otros cargos de la misma persona
+      // y los contadores del panel se enteren del cambio.
+      router.refresh();
     } catch {
       setError("Error de conexión.");
     } finally {
@@ -122,6 +125,11 @@ function Contacto({
           <span className="text-xs text-rotary-ink/50">{contacto.periodo}</span>
         )}
       </div>
+      {contacto.otrosCargos.length > 0 && (
+        <p className="text-xs text-rotary-ink/60">
+          También figura como {contacto.otrosCargos.join(" y ")}.
+        </p>
+      )}
 
       <div className="flex items-center gap-3 flex-wrap text-xs text-rotary-ink/70">
         {contacto.telefono ? (
@@ -147,33 +155,45 @@ function Contacto({
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <button
-          type="button"
-          onClick={escribir}
-          disabled={!numero}
-          title={numero ? `Escribirle a ${contacto.nombre}` : "No tiene teléfono cargado"}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#25d366] rounded-full px-3 py-1 hover:bg-[#1eb455] transition-colors disabled:opacity-40 disabled:hover:bg-[#25d366]"
-        >
-          <WhatsAppIcon size={13} />
-          Mandar material
-        </button>
+        {/* Un solo lugar para escribirle y marcar el aviso: con un botón por
+            cargo, la misma persona recibía el material dos veces. */}
+        {contacto.mismaPersonaQue ? (
+          <span className="text-xs text-rotary-ink/80 bg-rotary-gold/10 border border-rotary-gold/40 rounded-lg px-3 py-1">
+            Es la misma persona que <span className="font-semibold">{contacto.mismaPersonaQue.cargo}</span>:
+            el WhatsApp y el aviso están en ese cargo
+            {contacto.mismaPersonaQue.avisadoAt ? " (aviso ya marcado)" : ""}.
+          </span>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={escribir}
+              disabled={!numero}
+              title={numero ? `Escribirle a ${contacto.nombre}` : "No tiene teléfono cargado"}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#25d366] rounded-full px-3 py-1 hover:bg-[#1eb455] transition-colors disabled:opacity-40 disabled:hover:bg-[#25d366]"
+            >
+              <WhatsAppIcon size={13} />
+              Mandar material
+            </button>
 
-        <button
-          type="button"
-          onClick={alternarAvisado}
-          disabled={guardando}
-          className={`text-xs font-semibold rounded-full px-3 py-1 border transition-colors disabled:opacity-60 ${
-            avisadoAt
-              ? "border-rotary-teal/40 bg-rotary-teal/10 text-rotary-teal-dark"
-              : "border-rotary-ink/20 text-rotary-ink/60 hover:bg-rotary-ink/5"
-          }`}
-        >
-          {guardando
-            ? "…"
-            : avisadoAt
-              ? `✓ Avisado ${fechaCorta(avisadoAt)}`
-              : "Marcar avisado"}
-        </button>
+            <button
+              type="button"
+              onClick={alternarAvisado}
+              disabled={guardando}
+              className={`text-xs font-semibold rounded-full px-3 py-1 border transition-colors disabled:opacity-60 ${
+                avisadoAt
+                  ? "border-rotary-teal/40 bg-rotary-teal/10 text-rotary-teal-dark"
+                  : "border-rotary-ink/20 text-rotary-ink/60 hover:bg-rotary-ink/5"
+              }`}
+            >
+              {guardando
+                ? "…"
+                : avisadoAt
+                  ? `✓ Avisado ${fechaCorta(avisadoAt)}`
+                  : "Marcar avisado"}
+            </button>
+          </>
+        )}
 
         <button
           type="button"
@@ -238,7 +258,9 @@ export function TarjetaClubDifusion({
   siteUrl: string;
 }) {
   const { club, contactos, bonos, chicos, puesto } = datos;
-  const avisados = contactos.filter((c) => c.avisadoAt).length;
+  // Cuenta personas, no cargos: quien ocupa dos cargos se avisa una vez.
+  const personas = contactos.filter((c) => !c.mismaPersonaQue);
+  const avisados = personas.filter((c) => c.avisadoAt).length;
   const [agregando, setAgregando] = useState(false);
 
   return (
@@ -270,7 +292,7 @@ export function TarjetaClubDifusion({
         )}
         {contactos.length > 0 && (
           <span className="text-xs text-rotary-ink/50">
-            {avisados} de {contactos.length} avisados
+            {avisados} de {personas.length} avisados
           </span>
         )}
       </div>

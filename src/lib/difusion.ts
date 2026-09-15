@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { DISTRICT_CLUBS, rutaDeClub, slugDeClub } from "@/lib/clubs";
 import { childrenProtected } from "@/lib/impact";
 import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
+import { marcarMismaPersona, type MarcaMismaPersona } from "@/lib/misma-persona";
 
 export type ContactoClub = {
   id: number;
@@ -11,7 +12,7 @@ export type ContactoClub = {
   email: string | null;
   telefono: string | null;
   avisadoAt: string | null;
-};
+} & MarcaMismaPersona;
 
 export type ClubParaDifusion = {
   club: string;
@@ -31,6 +32,11 @@ export type ClubParaDifusion = {
 
 /** Los cargos se muestran en el orden en que se los busca, no alfabético. */
 const ORDEN_CARGOS = ["Presidente", "Vicepresidente", "Secretario", "Tesorero"];
+
+function rangoDeCargo(cargo: string) {
+  const i = ORDEN_CARGOS.indexOf(cargo);
+  return i < 0 ? 99 : i;
+}
 
 /**
  * Todo lo que hace falta para salir a mover un club: sus datos, sus
@@ -63,6 +69,8 @@ export async function clubesParaDifusion(): Promise<ClubParaDifusion[]> {
       email: c.email,
       telefono: c.telefono,
       avisadoAt: c.avisadoAt?.toISOString() ?? null,
+      mismaPersonaQue: null,
+      otrosCargos: [],
     });
     contactosPorClub.set(c.club, lista);
   }
@@ -70,11 +78,12 @@ export async function clubesParaDifusion(): Promise<ClubParaDifusion[]> {
   return DISTRICT_CLUBS.map((club) => {
     const d = porClub.get(club);
     const v = ventas.get(club);
-    const lista = (contactosPorClub.get(club) ?? []).sort((a, b) => {
-      const ia = ORDEN_CARGOS.indexOf(a.cargo);
-      const ib = ORDEN_CARGOS.indexOf(b.cargo);
-      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
-    });
+    const lista = marcarMismaPersona(
+      (contactosPorClub.get(club) ?? []).sort(
+        (a, b) => rangoDeCargo(a.cargo) - rangoDeCargo(b.cargo)
+      ),
+      rangoDeCargo
+    );
 
     return {
       club,

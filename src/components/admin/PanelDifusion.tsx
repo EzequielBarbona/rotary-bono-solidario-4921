@@ -15,6 +15,15 @@ const FILTROS = {
 
 type Filtro = keyof typeof FILTROS;
 
+/**
+ * Las autoridades a las que hay que avisar, cada persona una sola vez. El
+ * cargo repetido de alguien no se puede marcar como avisado: contarlo
+ * dejaría al club "sin avisar" para siempre.
+ */
+function personasDe(club: ClubParaDifusion) {
+  return club.contactos.filter((k) => !k.mismaPersonaQue);
+}
+
 /** Sin tildes ni mayúsculas: quien busca "gonzalez" tiene que encontrar "González". */
 function normalizar(texto: string) {
   return texto
@@ -52,7 +61,7 @@ export function PanelDifusion({
         if (!enClub && !enGente) return false;
       }
       if (filtro === "sinAvisar") {
-        return c.contactos.length > 0 && c.contactos.some((k) => !k.avisadoAt);
+        return personasDe(c).some((k) => !k.avisadoAt);
       }
       if (filtro === "sinVentas") return c.bonos === 0;
       if (filtro === "conContactos") return c.contactos.length > 0;
@@ -61,11 +70,9 @@ export function PanelDifusion({
   }, [clubes, busqueda, filtro]);
 
   const conContactos = clubes.filter((c) => c.contactos.length > 0);
-  const totalContactos = clubes.reduce((s, c) => s + c.contactos.length, 0);
-  const avisados = clubes.reduce(
-    (s, c) => s + c.contactos.filter((k) => k.avisadoAt).length,
-    0
-  );
+  const personas = clubes.flatMap(personasDe);
+  const totalContactos = personas.length;
+  const avisados = personas.filter((k) => k.avisadoAt).length;
   const vendieron = clubes.filter((c) => c.bonos > 0).length;
 
   // Las autoridades que salieron de My Rotary vinieron sin telefono, y a
@@ -74,9 +81,7 @@ export function PanelDifusion({
   // que realmente se puede alcanzar hoy, con el mismo criterio que usa el
   // boton de cada contacto: si toWhatsAppNumber no arma el numero, el
   // boton esta apagado y la autoridad no cuenta.
-  const alcanzables = clubes.flatMap((c) =>
-    c.contactos.filter((k) => toWhatsAppNumber(k.telefono ?? ""))
-  );
+  const alcanzables = personas.filter((k) => toWhatsAppNumber(k.telefono ?? ""));
   const avisadosConTelefono = alcanzables.filter((k) => k.avisadoAt).length;
 
   return (
