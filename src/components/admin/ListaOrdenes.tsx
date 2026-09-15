@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { OrderCard } from "@/components/admin/OrderCard";
+import { ChipFiltro } from "@/components/admin/ChipFiltro";
+import { SIN_CLUB } from "@/lib/clubs";
 
 type AdminOrder = {
   id: number;
@@ -32,6 +34,38 @@ const ORDENES = {
 
 type Criterio = keyof typeof ORDENES;
 
+/** Vencidas y canceladas van juntas: ninguna de las dos pide nada más. */
+const ESTADOS = {
+  todas: "Todas",
+  pendientes: "Pendientes",
+  pagadas: "Pagadas",
+  bajas: "Canceladas y vencidas",
+} as const;
+
+type Estado = keyof typeof ESTADOS;
+
+function enEstado(orden: AdminOrder, estado: Estado) {
+  switch (estado) {
+    case "pendientes":
+      return orden.status === "PENDIENTE";
+    case "pagadas":
+      return orden.status === "PAGADO";
+    case "bajas":
+      return orden.status === "CANCELADO" || orden.status === "EXPIRADO";
+    default:
+      return true;
+  }
+}
+
+/** Pagada, pero el comprador todavía no recibió sus números por WhatsApp. */
+const sinAvisarAlComprador = (o: AdminOrder) =>
+  o.status === "PAGADO" && !o.confirmationSentAt;
+
+const conComprobanteRepetido = (o: AdminOrder) => o.comprobanteRepetidoEn.length > 0;
+
+/** Clave interna para las órdenes que no traen club; no es un valor guardado. */
+const CLUB_VACIO = "__vacio__";
+
 /**
  * Compara sin tildes ni mayusculas: quien busca escribe "gomez" y la
  * orden dice "Gómez". Si eso no encuentra nada, el buscador parece roto.
@@ -44,12 +78,53 @@ function normalizar(texto: string) {
     .trim();
 }
 
+const soloDigitos = (texto: string) => texto.replace(/\D/g, "");
+
 /**
- * La lista de ordenes con buscador por nombre y orden configurable.
+ * Busca en todo lo que alguien tiene a mano cuando pregunta por una
+ * compra: el comprador dice su nombre o su número de bono, el resumen
+ * bancario muestra el CUIT, y entre admins se habla de "la orden 86".
+ */
+function coincide(orden: AdminOrder, consulta: string) {
+  const q = consulta.trim();
+  if (!q) return true;
+
+  // "#86": número de orden, exacto.
+  if (/^#\s*\d+$/.test(q)) return orden.id === Number(soloDigitos(q));
+
+  // Solo cifras (con guiones o espacios, como se copia un CUIT o un
+  // teléfono). Hasta 4 cifras es un número de orden o de bono: con menos
+  // dígitos que eso, buscar dentro de CUITs y teléfonos traería casi todo.
+  if (/^[\d\s().+\-/]+$/.test(q)) {
+    const digitos = soloDigitos(q);
+    if (digitos.length <= 4) {
+      return orden.id === Number(digitos) || orden.numbers.includes(Number(digitos));
+    }
+    return (
+      soloDigitos(orden.buyerCuit).includes(digitos) ||
+      soloDigitos(orden.buyerPhone).includes(digitos)
+    );
+  }
+
+  const aguja = normalizar(q);
+  return [orden.buyerName, orden.buyerEmail, orden.buyerClub ?? ""].some((campo) =>
+    normalizar(campo).includes(aguja)
+  );
+}
+
+function etiquetaDeClub(clave: string) {
+  if (clave === CLUB_VACIO) return "Sin club indicado";
+  if (clave === SIN_CLUB) return "Ninguno, llegó por su cuenta";
+  return clave;
+}
+
+/**
+ * La lista de órdenes con buscador, filtros combinables y orden
+ * configurable.
  *
  * Filtra y ordena en el navegador y no en el servidor: son 1000 bonos
- * como maximo, entran de sobra en memoria, y asi escribir en el buscador
- * es instantaneo en vez de esperar un viaje al servidor por cada letra.
+ * como máximo, entran de sobra en memoria, y así cada filtro responde al
+ * instante en vez de esperar un viaje al servidor.
  */
 export function ListaOrdenes({
   ordenes,
@@ -59,14 +134,49 @@ export function ListaOrdenes({
   drawDateLabel: string;
 }) {
   const [busqueda, setBusqueda] = useState("");
+  const [estado, setEstado] = useState<Estado>("todas");
+  const [soloSinAvisar, setSoloSinAvisar] = useState(false);
+  const [soloRepetidos, setSoloRepetidos] = useState(false);
+  const [club, setClub] = useState("");
   const [criterio, setCriterio] = useState<Criterio>("estado");
   const [invertido, setInvertido] = useState(false);
 
+  const cantidades = useMemo(
+    () => ({
+      todas: ordenes.length,
+      pendientes: ordenes.filter((o) => enEstado(o, "pendientes")).length,
+      pagadas: ordenes.filter((o) => enEstado(o, "pagadas")).length,
+      bajas: ordenes.filter((o) => enEstado(o, "bajas")).length,
+      sinAvisar: ordenes.filter(sinAvisarAlComprador).length,
+      repetidos: ordenes.filter(conComprobanteRepetido).length,
+    }),
+    [ordenes]
+  );
+
+  // Solo los clubes que tienen órdenes, con cuántas: una lista de los 121
+  // obligaría a probar club por club para encontrar los que vendieron.
+  const clubesConOrdenes = useMemo(() => {
+    const cuenta = new Map<string, number>();
+    for (const o of ordenes) {
+      const clave = o.buyerClub || CLUB_VACIO;
+      cuenta.set(clave, (cuenta.get(clave) ?? 0) + 1);
+    }
+    const alFinal = (clave: string) => clave === SIN_CLUB || clave === CLUB_VACIO;
+    return [...cuenta.entries()].sort(([a], [b]) => {
+      if (alFinal(a) !== alFinal(b)) return alFinal(a) ? 1 : -1;
+      return a.localeCompare(b, "es");
+    });
+  }, [ordenes]);
+
   const visibles = useMemo(() => {
-    const aguja = normalizar(busqueda);
-    const filtradas = aguja
-      ? ordenes.filter((o) => normalizar(o.buyerName).includes(aguja))
-      : ordenes;
+    const filtradas = ordenes.filter(
+      (o) =>
+        enEstado(o, estado) &&
+        (!soloSinAvisar || sinAvisarAlComprador(o)) &&
+        (!soloRepetidos || conComprobanteRepetido(o)) &&
+        (!club || (o.buyerClub || CLUB_VACIO) === club) &&
+        coincide(o, busqueda)
+    );
 
     const ordenadas = [...filtradas].sort((a, b) => {
       switch (criterio) {
@@ -89,19 +199,75 @@ export function ListaOrdenes({
     });
 
     return invertido ? ordenadas.reverse() : ordenadas;
-  }, [ordenes, busqueda, criterio, invertido]);
+  }, [ordenes, busqueda, estado, soloSinAvisar, soloRepetidos, club, criterio, invertido]);
+
+  const hayFiltros =
+    busqueda.trim() !== "" || estado !== "todas" || soloSinAvisar || soloRepetidos || club !== "";
+
+  function limpiarFiltros() {
+    setBusqueda("");
+    setEstado("todas");
+    setSoloSinAvisar(false);
+    setSoloRepetidos(false);
+    setClub("");
+  }
+
+  const campo =
+    "border border-rotary-ink/15 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rotary-azure";
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-        <input
-          type="search"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar por nombre del comprador"
-          aria-label="Buscar órdenes por nombre del comprador"
-          className="flex-1 border border-rotary-ink/15 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-azure"
+      <input
+        type="search"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        placeholder="Buscar por nombre, CUIT, teléfono, email, #orden o número de bono"
+        aria-label="Buscar órdenes"
+        className={campo}
+      />
+
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por estado">
+        {(Object.keys(ESTADOS) as Estado[]).map((clave) => (
+          <ChipFiltro
+            key={clave}
+            activo={estado === clave}
+            onClick={() => setEstado(clave)}
+            texto={ESTADOS[clave]}
+            cantidad={cantidades[clave]}
+            alerta={clave === "pendientes"}
+          />
+        ))}
+        <span className="w-px bg-rotary-ink/10 mx-1" aria-hidden />
+        <ChipFiltro
+          activo={soloSinAvisar}
+          onClick={() => setSoloSinAvisar((v) => !v)}
+          texto="Pagadas sin avisar al comprador"
+          cantidad={cantidades.sinAvisar}
+          alerta
         />
+        <ChipFiltro
+          activo={soloRepetidos}
+          onClick={() => setSoloRepetidos((v) => !v)}
+          texto="Comprobante repetido"
+          cantidad={cantidades.repetidos}
+          alerta
+        />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+        <select
+          value={club}
+          onChange={(e) => setClub(e.target.value)}
+          aria-label="Filtrar por club"
+          className={`${campo} sm:flex-1`}
+        >
+          <option value="">Todos los clubes</option>
+          {clubesConOrdenes.map(([clave, n]) => (
+            <option key={clave} value={clave}>
+              {etiquetaDeClub(clave)} ({n})
+            </option>
+          ))}
+        </select>
         <div className="flex items-center gap-2">
           <label className="text-sm text-rotary-ink/70" htmlFor="orden-criterio">
             Ordenar por
@@ -110,7 +276,7 @@ export function ListaOrdenes({
             id="orden-criterio"
             value={criterio}
             onChange={(e) => setCriterio(e.target.value as Criterio)}
-            className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rotary-azure"
+            className={campo}
           >
             {Object.entries(ORDENES).map(([valor, texto]) => (
               <option key={valor} value={valor}>
@@ -134,11 +300,22 @@ export function ListaOrdenes({
         </div>
       </div>
 
-      <p className="text-xs text-rotary-ink/50 -mt-1">
-        {busqueda.trim()
-          ? `${visibles.length} de ${ordenes.length} órdenes coinciden con “${busqueda.trim()}”.`
-          : `${ordenes.length} órdenes en total.`}
-      </p>
+      <div className="flex items-center gap-3 text-xs text-rotary-ink/50 -mt-1">
+        <span>
+          {hayFiltros
+            ? `${visibles.length} de ${ordenes.length} órdenes.`
+            : `${ordenes.length} órdenes en total.`}
+        </span>
+        {hayFiltros && (
+          <button
+            type="button"
+            onClick={limpiarFiltros}
+            className="font-semibold text-rotary-azure hover:underline"
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </div>
 
       <div className="flex flex-col gap-4">
         {ordenes.length === 0 && (
@@ -146,7 +323,7 @@ export function ListaOrdenes({
         )}
         {ordenes.length > 0 && visibles.length === 0 && (
           <p className="text-base text-rotary-ink/60">
-            Ningún comprador coincide con “{busqueda.trim()}”.
+            Ninguna orden coincide con la búsqueda y los filtros elegidos.
           </p>
         )}
         {visibles.map((orden) => (

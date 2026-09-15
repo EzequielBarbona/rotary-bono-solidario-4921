@@ -139,6 +139,9 @@ export function OrderCard({
         return;
       }
       setConfirmationSentAt(data.confirmationSentAt);
+      // Refresca para que el filtro "Pagadas sin avisar al comprador" y su
+      // contador se enteren: sin esto la orden avisada seguía en la lista.
+      router.refresh();
     } catch {
       setError("Error de conexión. Intentá de nuevo.");
     } finally {
