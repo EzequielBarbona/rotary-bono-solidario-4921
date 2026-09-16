@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
@@ -250,107 +250,313 @@ function Contacto({
   );
 }
 
+type Socio = {
+  id: number;
+  nombre: string;
+  email: string | null;
+  telefono: string | null;
+  onlineId: string | null;
+  rol: string | null;
+  origenContacto: string | null;
+  ordenId: number | null;
+};
+
+/** Sin tildes ni mayúsculas, para el buscador dentro de un club grande. */
+const normalizar = (t: string) =>
+  t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+/**
+ * Los socios de un club, pedidos recién cuando se abre la sección.
+ *
+ * Se monta una sola vez y después solo se oculta: cerrar y volver a abrir
+ * no repite el pedido al servidor.
+ */
+function ListaSocios({ club }: { club: string }) {
+  const [socios, setSocios] = useState<Socio[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState("");
+
+  useEffect(() => {
+    let vigente = true;
+    fetch(`/api/admin/socios?club=${encodeURIComponent(club)}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (!vigente) return;
+        if (!res.ok) setError(data?.error ?? "No se pudieron traer los socios.");
+        else setSocios(data.socios);
+      })
+      .catch(() => vigente && setError("Error de conexión."));
+    return () => {
+      vigente = false;
+    };
+  }, [club]);
+
+  const visibles = useMemo(() => {
+    const aguja = normalizar(filtro);
+    if (!socios || !aguja) return socios ?? [];
+    return socios.filter((s) => normalizar(s.nombre).includes(aguja));
+  }, [socios, filtro]);
+
+  if (error) return <p className="text-xs text-red-600 py-2">{error}</p>;
+  if (!socios) return <p className="text-xs text-rotary-ink/50 py-2">Cargando socios…</p>;
+  if (socios.length === 0) {
+    return (
+      <p className="text-xs text-rotary-ink/50 py-2">
+        Todavía no hay socios cargados para este club.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 pt-1">
+      {socios.length > 12 && (
+        <input
+          type="search"
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value)}
+          placeholder="Buscar socio"
+          aria-label={`Buscar socio de ${club}`}
+          className="border border-rotary-ink/15 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-rotary-azure"
+        />
+      )}
+      <ul className="flex flex-col">
+        {visibles.map((s) => (
+          <li
+            key={s.id}
+            className="py-1.5 border-t border-rotary-ink/10 flex flex-col sm:flex-row sm:items-baseline sm:gap-3 gap-0.5"
+          >
+            <span className="text-sm text-rotary-ink sm:w-64 shrink-0">
+              {s.nombre}
+              {s.rol && (
+                <span className="ml-1.5 text-[11px] font-semibold text-rotary-azure">{s.rol}</span>
+              )}
+            </span>
+            <span className="flex items-center gap-3 flex-wrap text-xs text-rotary-ink/70">
+              {s.telefono && (
+                <span>
+                  {s.telefono}
+                  <CopyButton value={s.telefono} label={`Copiar el teléfono de ${s.nombre}`} />
+                </span>
+              )}
+              {s.email && (
+                <span>
+                  {s.email}
+                  <CopyButton value={s.email} label={`Copiar el correo de ${s.nombre}`} />
+                </span>
+              )}
+              {/* El usuario de My Rotary suele ser un correo personal: si no
+                  hay otro contacto, es lo único que hay para ubicarlo. */}
+              {!s.email && s.onlineId?.includes("@") && (
+                <span className="text-rotary-ink/50">
+                  usuario My Rotary: {s.onlineId}
+                  <CopyButton value={s.onlineId} label={`Copiar el usuario de ${s.nombre}`} />
+                </span>
+              )}
+              {s.origenContacto === "orden" && s.ordenId && (
+                <span className="text-[11px] text-rotary-teal-dark bg-rotary-teal/10 rounded-full px-2 py-px">
+                  datos de su compra #{s.ordenId}
+                </span>
+              )}
+              {!s.telefono && !s.email && !s.onlineId && (
+                <span className="text-rotary-ink/40">sin datos de contacto</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {filtro && visibles.length === 0 && (
+        <p className="text-xs text-rotary-ink/50">Ningún socio coincide.</p>
+      )}
+    </div>
+  );
+}
+
+/** Una sección plegable dentro de la tarjeta del club. */
+function Seccion({
+  titulo,
+  detalle,
+  abiertaInicial,
+  children,
+}: {
+  titulo: string;
+  detalle?: string;
+  abiertaInicial: boolean;
+  children: React.ReactNode;
+}) {
+  const [abierta, setAbierta] = useState(abiertaInicial);
+  // Se monta al abrirla por primera vez y después solo se oculta, así la
+  // lista de socios no se vuelve a pedir cada vez que se pliega.
+  const [montada, setMontada] = useState(abiertaInicial);
+
+  return (
+    <div className="border-t border-rotary-ink/10 pt-2">
+      <button
+        type="button"
+        onClick={() => {
+          setAbierta((v) => !v);
+          setMontada(true);
+        }}
+        aria-expanded={abierta}
+        className="w-full flex items-center gap-2 text-left text-sm font-bold text-rotary-ink hover:text-rotary-azure"
+      >
+        <span className={`text-xs transition-transform ${abierta ? "rotate-90" : ""}`}>▶</span>
+        {titulo}
+        {detalle && <span className="text-xs font-normal text-rotary-ink/50">{detalle}</span>}
+      </button>
+      {montada && <div hidden={!abierta}>{children}</div>}
+    </div>
+  );
+}
+
+export type OrdenGlobal = { abiertas: boolean; version: number };
+
 export function TarjetaClubDifusion({
   datos,
   siteUrl,
+  abiertaForzada = false,
+  ordenGlobal,
 }: {
   datos: ClubParaDifusion;
   siteUrl: string;
+  /** Mientras hay una búsqueda escrita, las tarjetas se muestran abiertas. */
+  abiertaForzada?: boolean;
+  /** "Abrir todas" / "Cerrar todas" del panel. */
+  ordenGlobal?: OrdenGlobal;
 }) {
   const { club, contactos, bonos, chicos, puesto } = datos;
   // Cuenta personas, no cargos: quien ocupa dos cargos se avisa una vez.
   const personas = contactos.filter((c) => !c.mismaPersonaQue);
   const avisados = personas.filter((c) => c.avisadoAt).length;
   const [agregando, setAgregando] = useState(false);
+  const [abierta, setAbierta] = useState(false);
+
+  useEffect(() => {
+    if (ordenGlobal && ordenGlobal.version > 0) setAbierta(ordenGlobal.abiertas);
+  }, [ordenGlobal]);
+
+  const visible = abierta || abiertaForzada;
 
   return (
-    <div className="border border-rotary-ink/10 rounded-xl p-4 flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <h3 className="text-base font-extrabold text-rotary-ink">{club}</h3>
-        <span className="text-xs text-rotary-ink/50">
-          {[datos.numeroRotary && `Nº ${datos.numeroRotary}`, datos.diaReunion]
-            .filter(Boolean)
-            .join(" · ")}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-3 flex-wrap text-sm">
-        {bonos > 0 ? (
-          <span className="text-rotary-ink">
-            <span className="font-extrabold">{bonos}</span> bono
-            {bonos === 1 ? "" : "s"} ·{" "}
-            <span className="font-extrabold">{chicos}</span> chico
-            {chicos === 1 ? "" : "s"}
-            {puesto !== null && (
-              <span className="text-rotary-ink/60"> · puesto {puesto}</span>
-            )}
-          </span>
-        ) : (
-          <span className="text-rotary-gold-dark font-semibold">
-            Todavía no vendió ningún bono
-          </span>
-        )}
-        {contactos.length > 0 && (
-          <span className="text-xs text-rotary-ink/50">
-            {avisados} de {personas.length} avisados
-          </span>
-        )}
-      </div>
-
-      {datos.emailClub && (
-        <p className="text-xs text-rotary-ink/70">
-          {datos.emailClub}
-          <CopyButton
-            value={datos.emailClub}
-            label={`Copiar el correo del club ${club}`}
-          />
-        </p>
-      )}
-
-      <div className="flex items-center gap-2 flex-wrap">
-        <CopyButton
-          value={`${siteUrl}${datos.ruta}`}
-          label={`Copiar el link de invitación de ${club}`}
-          texto="Copiar link"
-        />
-        <a
-          href={datos.volante}
-          className="text-xs font-semibold text-rotary-azure border border-rotary-azure/40 rounded-full px-2 py-0.5 hover:bg-rotary-azure/10 transition-colors"
-        >
-          Volante PDF
-        </a>
-      </div>
-
-      {contactos.length > 0 ? (
-        <ul className="mt-1 flex flex-col">
-          {contactos.map((c) => (
-            <Contacto
-              key={c.id}
-              contacto={c}
-              club={club}
-              enlace={datos.ruta}
-              volante={datos.volante}
-              bonos={bonos}
-            />
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-1 text-xs text-rotary-ink/50 border-t border-rotary-ink/10 pt-2">
-          No tenemos autoridades cargadas para este club. El padrón que nos
-          pasaron cubre solo los clubes rotarios: cargalas a mano acá abajo.
-        </p>
-      )}
-
-      {agregando ? (
-        <FormularioContacto club={club} onListo={() => setAgregando(false)} />
-      ) : (
+    <div className="border border-rotary-ink/10 rounded-xl bg-white">
+      {/* Cabecera: todo lo que hace falta para decidir si abrir el club. */}
+      <div className="flex items-start gap-3 p-4">
         <button
           type="button"
-          onClick={() => setAgregando(true)}
-          className="self-start text-xs font-semibold text-rotary-azure border border-rotary-azure/40 rounded-full px-3 py-1 hover:bg-rotary-azure/10 transition-colors"
+          onClick={() => setAbierta((v) => !v)}
+          aria-expanded={visible}
+          aria-label={visible ? `Cerrar ${club}` : `Abrir ${club}`}
+          className="flex-1 min-w-0 text-left flex flex-col gap-1 group"
         >
-          + Agregar autoridad
+          <span className="flex items-baseline gap-2 flex-wrap">
+            <span
+              className={`text-xs text-rotary-ink/50 transition-transform ${visible ? "rotate-90" : ""}`}
+            >
+              ▶
+            </span>
+            <h3 className="text-base font-extrabold text-rotary-ink group-hover:text-rotary-azure">
+              {club}
+            </h3>
+            <span className="text-xs text-rotary-ink/50">
+              {[datos.numeroRotary && `Nº ${datos.numeroRotary}`, datos.diaReunion]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          </span>
+          <span className="flex items-center gap-x-3 gap-y-1 flex-wrap text-xs pl-4">
+            {bonos > 0 ? (
+              <span className="text-rotary-ink">
+                <span className="font-extrabold">{bonos}</span> bono{bonos === 1 ? "" : "s"} ·{" "}
+                {chicos} chico{chicos === 1 ? "" : "s"}
+                {puesto !== null && <span className="text-rotary-ink/60"> · puesto {puesto}</span>}
+              </span>
+            ) : (
+              <span className="text-rotary-gold-dark font-semibold">Sin ventas</span>
+            )}
+            <span className="text-rotary-ink/60">
+              {personas.length} autoridad{personas.length === 1 ? "" : "es"}
+              {personas.length > 0 && ` · ${avisados} avisada${avisados === 1 ? "" : "s"}`}
+            </span>
+            <span className="text-rotary-ink/60">
+              {datos.socios} socio{datos.socios === 1 ? "" : "s"}
+              {datos.socios > 0 && ` · ${datos.sociosConContacto} con contacto`}
+            </span>
+          </span>
         </button>
+
+        <div className="flex items-center gap-2 flex-wrap justify-end shrink-0">
+          <CopyButton
+            value={`${siteUrl}${datos.ruta}`}
+            label={`Copiar el link de invitación de ${club}`}
+            texto="Copiar link"
+          />
+          <a
+            href={datos.volante}
+            className="text-xs font-semibold text-rotary-azure border border-rotary-azure/40 rounded-full px-2 py-0.5 hover:bg-rotary-azure/10 transition-colors"
+          >
+            Volante PDF
+          </a>
+        </div>
+      </div>
+
+      {visible && (
+        <div className="px-4 pb-4 flex flex-col gap-2">
+          {datos.emailClub && (
+            <p className="text-xs text-rotary-ink/70">
+              Correo del club: {datos.emailClub}
+              <CopyButton value={datos.emailClub} label={`Copiar el correo del club ${club}`} />
+            </p>
+          )}
+
+          <Seccion
+            titulo="Autoridades"
+            detalle={`${personas.length}`}
+            abiertaInicial
+          >
+            {contactos.length > 0 ? (
+              <ul className="mt-1 flex flex-col">
+                {contactos.map((c) => (
+                  <Contacto
+                    key={c.id}
+                    contacto={c}
+                    club={club}
+                    enlace={datos.ruta}
+                    volante={datos.volante}
+                    bonos={bonos}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-xs text-rotary-ink/50">
+                No tenemos autoridades cargadas para este club: cargalas a mano acá abajo.
+              </p>
+            )}
+            <div className="pt-2">
+              {agregando ? (
+                <FormularioContacto club={club} onListo={() => setAgregando(false)} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAgregando(true)}
+                  className="text-xs font-semibold text-rotary-azure border border-rotary-azure/40 rounded-full px-3 py-1 hover:bg-rotary-azure/10 transition-colors"
+                >
+                  + Agregar autoridad
+                </button>
+              )}
+            </div>
+          </Seccion>
+
+          <Seccion
+            titulo="Socios"
+            detalle={
+              datos.socios > 0
+                ? `${datos.socios} · ${datos.sociosConContacto} con teléfono o correo`
+                : "sin cargar"
+            }
+            abiertaInicial={false}
+          >
+            <ListaSocios club={club} />
+          </Seccion>
+        </div>
       )}
     </div>
   );

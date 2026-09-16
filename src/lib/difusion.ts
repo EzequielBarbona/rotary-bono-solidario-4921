@@ -28,6 +28,10 @@ export type ClubParaDifusion = {
   /** Puesto en la copa, o null si todavía no vendió. */
   puesto: number | null;
   contactos: ContactoClub[];
+  /** Socios cargados desde el padrón de My Rotary. */
+  socios: number;
+  /** De esos, cuántos tienen teléfono o correo. */
+  sociosConContacto: number;
 };
 
 /** Los cargos se muestran en el orden en que se los busca, no alfabético. */
@@ -47,11 +51,22 @@ function rangoDeCargo(cargo: string) {
  * el que le mandas a uno que va segundo.
  */
 export async function clubesParaDifusion(): Promise<ClubParaDifusion[]> {
-  const [datos, contactos, ranking] = await Promise.all([
+  const [datos, contactos, ranking, socios, sociosConContacto] = await Promise.all([
     prisma.clubDatos.findMany(),
     prisma.clubContacto.findMany({ orderBy: { id: "asc" } }),
     rankingPorClub(),
+    // Solo la cuenta: la lista de cada club se pide recién al abrirla, para
+    // no mandar unos 1.800 socios en cada carga de la página.
+    prisma.clubSocio.groupBy({ by: ["club"], _count: { _all: true } }),
+    prisma.clubSocio.groupBy({
+      by: ["club"],
+      where: { OR: [{ email: { not: null } }, { telefono: { not: null } }] },
+      _count: { _all: true },
+    }),
   ]);
+
+  const sociosPorClub = new Map(socios.map((s) => [s.club, s._count._all]));
+  const contactoPorClub = new Map(sociosConContacto.map((s) => [s.club, s._count._all]));
 
   const porClub = new Map(datos.map((d) => [d.club, d]));
   const ventas = new Map(
@@ -96,6 +111,8 @@ export async function clubesParaDifusion(): Promise<ClubParaDifusion[]> {
       chicos: childrenProtected(v?.reservado ?? 0),
       puesto: v?.puesto ?? null,
       contactos: lista,
+      socios: sociosPorClub.get(club) ?? 0,
+      sociosConContacto: contactoPorClub.get(club) ?? 0,
     };
   });
 }

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
 import { toWhatsAppNumber } from "@/lib/phone";
 import { ChipFiltro } from "@/components/admin/ChipFiltro";
-import { TarjetaClubDifusion } from "@/components/admin/TarjetaClubDifusion";
+import { TarjetaClubDifusion, type OrdenGlobal } from "@/components/admin/TarjetaClubDifusion";
 import type { ClubParaDifusion } from "@/lib/difusion";
 
 /**
@@ -76,10 +76,14 @@ function normalizar(texto: string) {
 /**
  * El sector de difusión: un tablero para salir a mover club por club.
  *
- * Busca por club, por nombre de autoridad y por teléfono, porque a veces
- * te acordás del presidente y no del club, o te llegó un mensaje de un
- * número. Filtra y ordena en el navegador: son 121 clubes, entran de
- * sobra en memoria.
+ * Cada club es una tarjeta plegable: cerrada muestra lo justo para decidir
+ * (ventas, autoridades avisadas, socios cargados) y abierta separa
+ * autoridades de socios. Con 121 clubes abiertos a la vez la página era
+ * una pared; así se recorre de un vistazo y se abre lo que interesa.
+ *
+ * Busca por club, por nombre de autoridad y por teléfono. Filtra y ordena
+ * en el navegador: son 121 clubes, entran de sobra en memoria. Los socios
+ * no viajan acá: cada tarjeta los pide al abrir su sección.
  */
 export function PanelDifusion({
   clubes,
@@ -93,6 +97,7 @@ export function PanelDifusion({
   const [busqueda, setBusqueda] = useState("");
   const [activos, setActivos] = useState<Set<Filtro>>(new Set());
   const [orden, setOrden] = useState<Orden>("alfabetico");
+  const [ordenGlobal, setOrdenGlobal] = useState<OrdenGlobal>({ abiertas: false, version: 0 });
 
   function alternar(filtro: Filtro) {
     setActivos((previos) => {
@@ -148,6 +153,8 @@ export function PanelDifusion({
   const totalContactos = personas.length;
   const avisados = personas.filter((k) => k.avisadoAt).length;
   const vendieron = clubes.filter((c) => c.bonos > 0).length;
+  const totalSocios = clubes.reduce((s, c) => s + c.socios, 0);
+  const sociosConContacto = clubes.reduce((s, c) => s + c.sociosConContacto, 0);
 
   // Las autoridades que salieron de My Rotary vinieron sin telefono, y a
   // esas no se les puede mandar el material por WhatsApp: contra el total
@@ -172,6 +179,10 @@ export function PanelDifusion({
           destacado={avisadosConTelefono < alcanzables.length}
         />
         <Dato valor={conContactos.length} etiqueta="clubes con autoridades cargadas" />
+        <Dato
+          valor={totalSocios}
+          etiqueta={`socios cargados · ${sociosConContacto} con teléfono o correo`}
+        />
       </div>
 
       <div className="border border-rotary-ink/10 rounded-lg px-4 py-3 text-sm text-rotary-ink/70">
@@ -219,7 +230,7 @@ export function PanelDifusion({
         ))}
       </div>
 
-      <div className="flex items-center gap-3 text-xs text-rotary-ink/50 -mt-2">
+      <div className="flex items-center gap-3 flex-wrap text-xs text-rotary-ink/50 -mt-2">
         <span>
           {hayFiltros
             ? `${visibles.length} de ${clubes.length} clubes.`
@@ -238,16 +249,40 @@ export function PanelDifusion({
             Limpiar filtros
           </button>
         )}
+        <span className="ml-auto flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setOrdenGlobal((o) => ({ abiertas: true, version: o.version + 1 }))}
+            className="font-semibold text-rotary-azure hover:underline"
+          >
+            Abrir todas
+          </button>
+          <button
+            type="button"
+            onClick={() => setOrdenGlobal((o) => ({ abiertas: false, version: o.version + 1 }))}
+            className="font-semibold text-rotary-azure hover:underline"
+          >
+            Cerrar todas
+          </button>
+        </span>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {visibles.length === 0 && (
           <p className="text-base text-rotary-ink/60">
             Ningún club cumple la búsqueda y los filtros elegidos.
           </p>
         )}
         {visibles.map((c) => (
-          <TarjetaClubDifusion key={c.club} datos={c} siteUrl={siteUrl} />
+          <TarjetaClubDifusion
+            key={c.club}
+            datos={c}
+            siteUrl={siteUrl}
+            // Quien escribe en el buscador está buscando a alguien: las
+            // tarjetas que coinciden se muestran abiertas.
+            abiertaForzada={busqueda.trim() !== ""}
+            ordenGlobal={ordenGlobal}
+          />
         ))}
       </div>
     </div>
