@@ -79,6 +79,7 @@ model ClubDatos {
   diaReunion   String?
   emailClub    String?
   contactos    ClubContacto[]
+  socios       ClubSocio[]
 }
 
 /// Una autoridad del club. Son varias por club (presidente, secretario,
@@ -94,6 +95,32 @@ model ClubContacto {
   /// Cuando un admin marco que ya le mando el material de difusion.
   avisadoAt DateTime?
   datos     ClubDatos @relation(fields: [club], references: [club], onDelete: Cascade)
+
+  @@index([club])
+}
+
+/// Un socio del club, traido del padron de My Rotary.
+///
+/// My Rotary casi nunca expone telefono ni correo de sus socios, asi que
+/// esos campos se completan cruzando por nombre contra las ordenes del
+/// bono: si Juan de Cipolletti compro, su telefono ya lo tenemos.
+model ClubSocio {
+  id       Int     @id @default(autoincrement())
+  club     String
+  nombre   String
+  /// Id de la persona en My Rotary: evita duplicar en cargas sucesivas.
+  rotaryId String? @unique
+  /// Correo con el que entra a My Rotary. A veces es el unico contacto que hay.
+  onlineId String?
+  email    String?
+  telefono String?
+  /// Cargo que My Rotary le reconoce, si tiene alguno ademas de socio.
+  rol      String?
+  /// De donde salieron el correo y el telefono: "orden" si los completo una compra.
+  origenContacto String?
+  /// Numero de orden con la que se completaron los datos, para poder revisarlo.
+  ordenId  Int?
+  datos    ClubDatos @relation(fields: [club], references: [club], onDelete: Cascade)
 
   @@index([club])
 }
