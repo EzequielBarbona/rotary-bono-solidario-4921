@@ -352,9 +352,20 @@ function ListaSocios({ club }: { club: string }) {
                   <CopyButton value={s.onlineId} label={`Copiar el usuario de ${s.nombre}`} />
                 </span>
               )}
+              {/* Seguro: el correo o teléfono de My Rotary coincide con la
+                  orden. A confirmar: coincide el nombre y el correo del
+                  comprador lo respalda, pero pudo comprar otra persona. */}
               {s.origenContacto === "orden" && s.ordenId && (
                 <span className="text-[11px] text-rotary-teal-dark bg-rotary-teal/10 rounded-full px-2 py-px">
                   datos de su compra #{s.ordenId}
+                </span>
+              )}
+              {s.origenContacto === "orden-nombre" && s.ordenId && (
+                <span
+                  className="text-[11px] text-rotary-gold-dark bg-rotary-gold/10 rounded-full px-2 py-px"
+                  title="Coincide el nombre y el correo del comprador lo respalda, pero el club de la compra no prueba que sea el socio."
+                >
+                  de la compra #{s.ordenId} · por nombre, a confirmar
                 </span>
               )}
               {!s.telefono && !s.email && !s.onlineId && (

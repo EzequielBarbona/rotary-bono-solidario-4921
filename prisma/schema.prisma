@@ -116,7 +116,9 @@ model ClubSocio {
   telefono String?
   /// Cargo que My Rotary le reconoce, si tiene alguno ademas de socio.
   rol      String?
-  /// De donde salieron el correo y el telefono: "orden" si los completo una compra.
+  /// De donde salieron correo y telefono. Vacio: de My Rotary. "orden": de una
+  /// compra, con identidad segura (coincide correo o telefono de My Rotary).
+  /// "orden-nombre": de una compra que coincide por nombre, a confirmar.
   origenContacto String?
   /// Numero de orden con la que se completaron los datos, para poder revisarlo.
   ordenId  Int?
