@@ -4,8 +4,18 @@ import { join } from "node:path";
 import QRCode from "qrcode";
 import { PDFDocument } from "pdf-lib";
 import { raffleConfig } from "@/lib/config";
-import { formatArs, formatDrawDate } from "@/lib/format";
 import { clubDeSlug, slugDeClub } from "@/lib/clubs";
+import {
+  DESTINOS,
+  ECUACION,
+  GANCHO,
+  LEMA,
+  LLAMADO,
+  MARCA,
+  PREMIO,
+  SORTEO,
+  URGENCIA,
+} from "@/lib/copy";
 
 /*
  * Volante A4 imprimible para cada club, con el QR de su link.
@@ -87,8 +97,9 @@ export async function GET(
             lineHeight: 1.12,
           }}
         >
-          <div>Mantengamos la esperanza</div>
-          <div>de un mundo libre de polio</div>
+          {LEMA.map((linea) => (
+            <div key={linea}>{linea}</div>
+          ))}
         </div>
 
         <div
@@ -99,31 +110,47 @@ export async function GET(
             color: "#f7a81b",
           }}
         >
-          ¿Nos ayudás?
+          {GANCHO}
         </div>
+
+        {/* La cuenta, sobre una banda: es lo que se lee desde lejos. */}
+        {ECUACION && (
+          <div
+            style={{
+              display: "flex",
+              marginTop: 38,
+              padding: "20px 46px",
+              borderRadius: 26,
+              backgroundColor: "rgba(255,255,255,0.14)",
+              fontSize: 62,
+              fontWeight: 800,
+            }}
+          >
+            {ECUACION}
+          </div>
+        )}
 
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            marginTop: 44,
+            marginTop: 38,
             fontSize: 44,
             lineHeight: 1.3,
             color: "rgba(255,255,255,0.94)",
           }}
         >
-          <div style={{ fontWeight: 800 }}>Bono Solidario PolioPlus</div>
-          <div>Sorteamos una estadía de 5 noches para 2 personas</div>
-          <div>en Bariloche o Las Grutas</div>
-          <div style={{ marginTop: 14 }}>
-            {`Bonos de ${formatArs(raffleConfig.ticketPriceArs)} · Sorteo ${formatDrawDate(
-              raffleConfig.drawDate
-            )}`}
+          <div style={{ fontWeight: 800 }}>{MARCA}</div>
+          <div style={{ marginTop: 10 }}>{PREMIO}</div>
+          <div style={{ fontWeight: 800, color: "#f7a81b" }}>{DESTINOS}</div>
+          <div style={{ marginTop: 12, fontSize: 36, color: "rgba(255,255,255,0.75)" }}>
+            {SORTEO}
           </div>
-          <div style={{ marginTop: 10, fontSize: 36, color: "rgba(255,255,255,0.75)" }}>
-            Por la Lotería Nacional, sorteo nocturno
-          </div>
+        </div>
+
+        <div style={{ marginTop: 34, fontSize: 40, color: "rgba(255,255,255,0.92)" }}>
+          {URGENCIA}
         </div>
 
         {/* El QR sobre blanco: sobre el degradado los lectores fallan. */}
@@ -148,7 +175,7 @@ export async function GET(
             color: "#f7a81b",
           }}
         >
-          Escaneá y comprá tu bono
+          {LLAMADO}
         </div>
 
         <div
@@ -180,6 +207,14 @@ export async function GET(
   );
 
   const png = await imagen.arrayBuffer();
+
+  // En desarrollo, ?png=1 devuelve la imagen suelta: revisar como quedo el
+  // volante abriendo un PDF que ademas se descarga es un suplicio, y asi
+  // se ve de una en el navegador. En produccion no existe.
+  if (process.env.NODE_ENV === "development" && _request.url.includes("png=1")) {
+    return new Response(png, { headers: { "Content-Type": "image/png" } });
+  }
+
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Bono Solidario PolioPlus - ${club}`);
   const pagina = pdf.addPage(A4_PT);

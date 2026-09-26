@@ -13,6 +13,7 @@ import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { conLimite } from "@/lib/con-limite";
 import { conMemoriaCorta } from "@/lib/memoria-corta";
 import { RUTA_DISTRITO } from "@/lib/clubs";
+import { DESTINOS, ECUACION, GANCHO, RECORDATORIO, SORTEO } from "@/lib/copy";
 
 // El contador de vacunas tiene que reflejar las ordenes en tiempo real,
 // no un valor congelado en el build.
@@ -49,15 +50,17 @@ export default async function Home() {
   // para que no terminen diciendo cosas distintas.
   const enlaceDifusion = `${raffleConfig.siteUrl}${RUTA_DISTRITO}`;
   const textoInstagram = [
-    "Mantengamos la esperanza de un mundo libre de polio. ¿Nos ayudás?",
+    `Mantengamos la esperanza de un mundo libre de polio. ${GANCHO}`,
     "",
-    `Bono Solidario PolioPlus del Distrito Rotary 4921. Con cada bono de ${formatArs(
+    `Bono Solidario PolioPlus del Distrito Rotary 4921.${
+      ECUACION ? ` ${ECUACION}.` : ""
+    } Con cada bono de ${formatArs(
       raffleConfig.ticketPriceArs
     )} colaborás con el programa PolioPlus de Rotary International, que financia campañas de vacunación para erradicar la polio.`,
     "",
-    "Participás por una estadía de 5 noches para 2 personas en Bariloche o Las Grutas, del 30 de noviembre al 4 de diciembre.",
+    `Participás por una estadía de 5 noches para 2 personas, elegí tu destino: ${DESTINOS}, del 30 de noviembre al 4 de diciembre.`,
     "",
-    `Sorteo ${formatDrawDate(raffleConfig.drawDate)} por la Lotería Nacional, sorteo nocturno.`,
+    `${SORTEO}.`,
     "",
     `Link en la bio 👉 ${enlaceDifusion}`,
     "",
@@ -280,7 +283,7 @@ export default async function Home() {
               Ayudanos a que llegue más lejos: compartilo con tu club.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
-              <ShareWhatsAppButton />
+              <ShareWhatsAppButton mensaje={RECORDATORIO} />
               <CompartirInstagram enlace={enlaceDifusion} texto={textoInstagram} />
             </div>
           </div>

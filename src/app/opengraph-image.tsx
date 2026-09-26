@@ -1,8 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { raffleConfig } from "@/lib/config";
-import { formatArs, formatDrawDate } from "@/lib/format";
+import { DESTINOS, ECUACION, GANCHO, MARCA, PREMIO, SORTEO } from "@/lib/copy";
 
 /*
  * Tarjeta que muestran WhatsApp, Facebook e Instagram cuando alguien
@@ -111,8 +110,25 @@ export default async function Image() {
             lineHeight: 1.1,
           }}
         >
-          ¿Nos ayudás?
+          {GANCHO}
         </div>
+
+        {/* La cuenta: en la tarjeta de WhatsApp es lo unico que se lee. */}
+        {ECUACION && (
+          <div
+            style={{
+              display: "flex",
+              marginTop: 16,
+              padding: "10px 26px",
+              borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.14)",
+              fontSize: 40,
+              fontWeight: 800,
+            }}
+          >
+            {ECUACION}
+          </div>
+        )}
 
         <div
           style={{
@@ -141,14 +157,9 @@ export default async function Image() {
             lineHeight: 1.25,
           }}
         >
-          <div style={{ fontWeight: 800 }}>Bono Solidario PolioPlus</div>
-          <div>Sorteamos una estadía de 5 noches para 2 personas</div>
-          <div>en Bariloche o Las Grutas</div>
-          <div style={{ marginTop: 12 }}>
-            {`Bonos de ${formatArs(raffleConfig.ticketPriceArs)} · Sorteo ${formatDrawDate(
-              raffleConfig.drawDate
-            )}`}
-          </div>
+          <div style={{ fontWeight: 800 }}>{MARCA}</div>
+          <div>{`${PREMIO} ${DESTINOS}`}</div>
+          <div style={{ marginTop: 12 }}>{SORTEO}</div>
         </div>
       </div>
     ),

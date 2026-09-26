@@ -2,8 +2,16 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { raffleConfig } from "@/lib/config";
-import { formatArs, formatDrawDate } from "@/lib/format";
 import { RUTA_DISTRITO } from "@/lib/clubs";
+import {
+  DESTINOS,
+  ECUACION,
+  GANCHO,
+  LEMA,
+  MARCA,
+  SORTEO_FECHA,
+  SORTEO_MEDIO,
+} from "@/lib/copy";
 
 /*
  * Imagenes para publicar en Instagram.
@@ -17,11 +25,37 @@ import { RUTA_DISTRITO } from "@/lib/clubs";
  * puede clickear nada, y al menos queda a la vista para tipearla.
  */
 
+/*
+ * Los cortes del lema van a mano, formato por formato: el wrap automatico
+ * parte las frases en cualquier lado. Y `pregunta` es mas chica que el
+ * titulo a proposito, porque "¿Ya tenés tu bono?" tiene que entrar en una
+ * sola linea: partido en dos pierde todo.
+ *
+ * El cuadrado tiene mucho menos alto que la historia para la misma
+ * cantidad de texto, asi que ahi el lema entra en dos lineas y en letra
+ * mas chica; si no, la cuenta se le monta encima al gancho.
+ */
 const FORMATOS = {
   // Publicacion cuadrada del feed.
-  post: { width: 1080, height: 1080, logo: 420, titulo: 74, pregunta: 84, pie: 34 },
+  post: {
+    width: 1080,
+    height: 1080,
+    logo: 420,
+    titulo: 64,
+    pregunta: 80,
+    pie: 34,
+    lema: LEMA,
+  },
   // Historia vertical.
-  historia: { width: 1080, height: 1920, logo: 520, titulo: 88, pregunta: 104, pie: 40 },
+  historia: {
+    width: 1080,
+    height: 1920,
+    logo: 520,
+    titulo: 88,
+    pregunta: 88,
+    pie: 40,
+    lema: ["Mantengamos", "la esperanza de un", "mundo libre de polio"],
+  },
 } as const;
 
 type Formato = keyof typeof FORMATOS;
@@ -102,8 +136,6 @@ export async function GET(
           style={{ marginBottom: esHistoria ? 80 : 48 }}
         />
 
-        {/* Los cortes de linea van a mano: el wrap automatico parte las
-            frases en cualquier lado. */}
         <div
           style={{
             display: "flex",
@@ -114,9 +146,9 @@ export async function GET(
             lineHeight: 1.15,
           }}
         >
-          <div>Mantengamos</div>
-          <div>la esperanza de un</div>
-          <div>mundo libre de polio</div>
+          {f.lema.map((linea) => (
+            <div key={linea}>{linea}</div>
+          ))}
         </div>
 
         <div
@@ -126,19 +158,31 @@ export async function GET(
             fontWeight: 800,
             color: "#f7a81b",
             lineHeight: 1.1,
+            whiteSpace: "nowrap",
           }}
         >
-          ¿Nos ayudás?
+          {GANCHO}
         </div>
 
-        <div
-          style={{
-            marginTop: esHistoria ? 70 : 44,
-            width: esHistoria ? 700 : 620,
-            height: 3,
-            backgroundColor: "rgba(255,255,255,0.25)",
-          }}
-        />
+        {/*
+          La cuenta, sobre una banda. Reemplaza a la linea divisoria que
+          habia aca: separa igual y ademas dice algo.
+        */}
+        {ECUACION && (
+          <div
+            style={{
+              display: "flex",
+              marginTop: esHistoria ? 70 : 46,
+              padding: esHistoria ? "18px 40px" : "14px 32px",
+              borderRadius: 22,
+              backgroundColor: "rgba(255,255,255,0.14)",
+              fontSize: Math.round(f.pie * 1.35),
+              fontWeight: 800,
+            }}
+          >
+            {ECUACION}
+          </div>
+        )}
 
         <div
           style={{
@@ -152,14 +196,12 @@ export async function GET(
             lineHeight: 1.35,
           }}
         >
-          <div style={{ fontWeight: 800 }}>Bono Solidario PolioPlus</div>
-          <div>Sorteamos una estadía de 5 noches</div>
-          <div>para 2 personas en Bariloche o Las Grutas</div>
-          <div style={{ marginTop: 18 }}>
-            {`Bonos de ${formatArs(raffleConfig.ticketPriceArs)} · Sorteo ${formatDrawDate(
-              raffleConfig.drawDate
-            )}`}
-          </div>
+          <div style={{ fontWeight: 800 }}>{MARCA}</div>
+          <div style={{ marginTop: 10 }}>5 noches para 2 personas,</div>
+          <div>elegí tu destino:</div>
+          <div style={{ fontWeight: 800, color: "#f7a81b" }}>{DESTINOS}</div>
+          <div style={{ marginTop: 18 }}>{SORTEO_FECHA}</div>
+          <div>{SORTEO_MEDIO}</div>
         </div>
 
         <div

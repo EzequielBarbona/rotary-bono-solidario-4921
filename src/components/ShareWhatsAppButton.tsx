@@ -8,21 +8,12 @@ import { WhatsAppIcon } from "@/components/WhatsAppIcon";
  * grupos de cada club. Este boton deja el mensaje ya escrito para que
  * reenviarlo sea un toque y nadie tenga que redactar nada.
  */
-const SHARE_MESSAGE = [
-  "Sumate al Bono Solidario PolioPlus del Distrito Rotary 4921.",
-  "",
-  "Con cada bono ayudás a vacunar chicos contra la polio y participás por una " +
-    "estadía de 5 noches para 2 personas en Bariloche o Las Grutas, del 30 de " +
-    "noviembre al 4 de diciembre.",
-  "",
-  "Elegí tus números acá:",
-].join("\n");
 
 export function ShareWhatsAppButton({
   label = "Compartir por WhatsApp",
   className = "",
   ruta = RUTA_DISTRITO,
-  mensaje = SHARE_MESSAGE,
+  mensaje,
 }: {
   label?: string;
   className?: string;
@@ -32,7 +23,15 @@ export function ShareWhatsAppButton({
    * que lo que el reparta le sume a ese club.
    */
   ruta?: string;
-  mensaje?: string;
+  /**
+   * El texto, armado en el servidor.
+   *
+   * No se importa RECORDATORIO aca: sale del precio y la fecha del sorteo,
+   * que viven en variables de entorno del servidor. En el navegador esas
+   * variables no existen y el mensaje saldria diciendo "$0" y "sorteo a
+   * definir".
+   */
+  mensaje: string;
 }) {
   function share() {
     // La URL se arma en el click y no en el render para no depender de
