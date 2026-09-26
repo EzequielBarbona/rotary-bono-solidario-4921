@@ -12,8 +12,17 @@ import { rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { conLimite } from "@/lib/con-limite";
 import { conMemoriaCorta } from "@/lib/memoria-corta";
-import { RUTA_DISTRITO } from "@/lib/clubs";
-import { DESTINOS, ECUACION, GANCHO, RECORDATORIO, SORTEO } from "@/lib/copy";
+import { cookies } from "next/headers";
+import { CLUB_COOKIE, clubDeSlug, RUTA_DISTRITO, slugDeClub } from "@/lib/clubs";
+import {
+  DESTINOS,
+  ECUACION,
+  GANCHO,
+  LEMA,
+  MARCA,
+  RECORDATORIO,
+  SORTEO,
+} from "@/lib/copy";
 
 // El contador de vacunas tiene que reflejar las ordenes en tiempo real,
 // no un valor congelado en el build.
@@ -45,6 +54,18 @@ export default async function Home() {
   const kidsSoFar = childrenProtected(recaudado);
   const kidsGoal = childrenProtected(raffleConfig.totalTickets * raffleConfig.ticketPriceArs);
   const pictogram = pictogramScale(kidsGoal, kidsSoFar, 400, 10);
+
+  /*
+   * El volante que se ofrece para imprimir es el del club por el que entro
+   * la visita: quien llego por el link de Cipolletti reparte el de
+   * Cipolletti y las ventas le quedan a Cipolletti. Sin club, el del
+   * distrito, que no le acredita a nadie.
+   */
+  const slugVisita = (await cookies()).get(CLUB_COOKIE)?.value;
+  const clubVisita = slugVisita ? clubDeSlug(slugVisita) : null;
+  const volante = clubVisita
+    ? `/flyer/club/${slugDeClub(clubVisita)}`
+    : "/flyer/distrito";
 
   // Pie de foto para Instagram. Sale de los mismos datos que la pagina,
   // para que no terminen diciendo cosas distintas.
@@ -78,21 +99,38 @@ export default async function Home() {
           aria-hidden
           className="pointer-events-none absolute -left-16 bottom-[-6rem] w-56 h-56 rounded-full border-[16px] border-rotary-gold/25"
         />
-        <div className="relative max-w-3xl w-full mx-auto px-4 pt-12 pb-20 flex flex-col items-center gap-5 text-center">
+        <div className="relative max-w-3xl w-full mx-auto px-4 pt-8 sm:pt-12 pb-16 sm:pb-20 flex flex-col items-center gap-4 sm:gap-5 text-center">
           <Image
             src="/brand/rotary-endpolio-lockup-white.png"
             alt="Rotary Distrito 4921 - End Polio Now"
             width={340}
             height={152}
             priority
-            className="w-80 sm:w-[28rem] h-auto"
+            className="w-64 sm:w-[28rem] h-auto"
           />
+          {/*
+            El mismo orden que el volante: lema, gancho y la cuenta. Quien
+            escanea el QR tiene que reconocer el papel que acaba de leer.
+          */}
           <span className="uppercase tracking-widest text-sm font-semibold text-rotary-gold">
-            Subcomité PolioPlus &middot; Distrito Rotary 4921
+            {MARCA}
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight text-balance">
-            {raffleConfig.title}
+          {/*
+            Escalonado desde el telefono: con el lema, el gancho y la cuenta
+            en tamano de escritorio, el boton de comprar se iba abajo de
+            todo y habia que scrollear para encontrarlo.
+          */}
+          <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight text-balance">
+            {LEMA.join(" ")}
           </h1>
+          <p className="text-2xl sm:text-4xl font-extrabold text-rotary-gold -mt-1">
+            {GANCHO}
+          </p>
+          {ECUACION && (
+            <p className="bg-white/15 rounded-2xl px-5 py-3 text-base sm:text-2xl font-extrabold whitespace-nowrap">
+              {ECUACION}
+            </p>
+          )}
           <p className="text-lg text-white/90">
             Fecha del sorteo {formatDrawDate(raffleConfig.drawDate)}
           </p>
@@ -285,6 +323,20 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
               <ShareWhatsAppButton mensaje={RECORDATORIO} />
               <CompartirInstagram enlace={enlaceDifusion} texto={textoInstagram} />
+            </div>
+
+            <div className="mt-4 flex flex-col items-center gap-1.5">
+              <a
+                href={volante}
+                className="inline-flex items-center justify-center gap-2 border-2 border-rotary-azure text-rotary-azure font-bold px-6 py-3 rounded-full hover:bg-rotary-azure/10 transition-colors"
+              >
+                Volante para imprimir
+              </a>
+              <p className="text-sm text-rotary-ink/60">
+                {clubVisita
+                  ? `Una hoja A4 con el código QR de ${clubVisita}: lo que se venda por ahí le suma al club.`
+                  : "Una hoja A4 con el código QR del distrito. Si sos de un club, entrá por el link de tu club y descargá el de ustedes."}
+              </p>
             </div>
           </div>
         </div>

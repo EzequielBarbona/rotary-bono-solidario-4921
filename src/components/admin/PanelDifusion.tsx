@@ -192,6 +192,17 @@ export function PanelDifusion({
           label="Copiar el link de difusión del distrito"
           texto="Copiar link del distrito"
         />
+        {/*
+          eslint-disable-next-line @next/next/no-html-link-for-pages --
+          No es una pagina: es una ruta que devuelve un PDF. Con <Link/> el
+          router intentaria navegar en vez de bajar el archivo.
+        */}
+        <a
+          href="/flyer/distrito"
+          className="ml-2 text-xs font-semibold text-rotary-azure border border-rotary-azure/40 rounded-full px-2 py-0.5 hover:bg-rotary-azure/10 transition-colors"
+        >
+          Volante PDF
+        </a>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
