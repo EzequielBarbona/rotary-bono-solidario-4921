@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DESTINOS, ECUACION, GANCHO, LEMA, MARCA, PREMIO, SORTEO } from "@/lib/copy";
-import { CIERRE, ventaCerrada } from "@/lib/cierre";
+import { CIERRE, faltanEnPalabras, ventaCerrada } from "@/lib/cierre";
 import { formatArtDayTime } from "@/lib/dates";
 
 /*
@@ -88,8 +88,20 @@ export function dibujarTarjeta({
       ? [{ texto: "La venta cerró", tam: 32, color: "white" }]
       : [
           { texto: "ÚLTIMAS HORAS PARA AYUDAR", tam: 24, color: "#f7a81b" },
-          { texto: `Cierra el ${formatArtDayTime(CIERRE)}`, tam: 30, color: "white" },
-        ];
+          /*
+           * La cuenta se dibuja en el momento en que WhatsApp pide la
+           * imagen, asi que el que comparte el link manda el numero de
+           * recien. Despues WhatsApp se guarda esa vista previa por link,
+           * y por eso abajo va siempre la fecha de cierre: si el numero
+           * envejece, al lado esta el dato que no se vence.
+           */
+          { texto: faltanEnPalabras() ?? "", tam: 38, color: "white" },
+          {
+            texto: `Cierra el ${formatArtDayTime(CIERRE)}`,
+            tam: 24,
+            color: "rgba(255,255,255,0.85)",
+          },
+        ].filter((l) => l.texto);
 
   return new ImageResponse(
     (
@@ -278,6 +290,12 @@ export function dibujarTarjeta({
         { name: "Open Sans", data: openSansRegular, weight: 400, style: "normal" },
         { name: "Open Sans", data: openSansExtraBold, weight: 800, style: "normal" },
       ],
+      /*
+       * Sin guardar: la tarjeta lleva la cuenta regresiva, asi que una
+       * copia guardada en el CDN serviria el numero de cuando se genero.
+       * Se dibuja de nuevo en cada pedido.
+       */
+      headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" },
     }
   );
 }

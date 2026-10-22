@@ -44,3 +44,34 @@ export function estadoDeVenta(ahora: number = Date.now()): EstadoDeVenta {
 export function ventaCerrada(ahora?: number) {
   return estadoDeVenta(ahora) !== "abierta";
 }
+
+const plural = (n: number, singular: string, plural: string) =>
+  `${n} ${n === 1 ? singular : plural}`;
+
+/**
+ * Cuanto falta, en palabras: "Faltan 1 día y 23 horas".
+ *
+ * Para la tarjeta de WhatsApp, que es una imagen y no puede ir corriendo.
+ * Redondea siempre para abajo a proposito: si el numero se queda viejo
+ * —WhatsApp guarda la vista previa por link en el telefono del que la
+ * mando— es preferible que prometa menos tiempo del que hay y no mas.
+ * Abajo va siempre la fecha de cierre, que no se vence nunca.
+ */
+export function faltanEnPalabras(ahora: number = Date.now()): string | null {
+  if (!CIERRE) return null;
+  const restante = CIERRE.getTime() - ahora;
+  if (restante <= 0) return null;
+
+  const minutos = Math.floor(restante / 60_000);
+  const horas = Math.floor(minutos / 60);
+  const dias = Math.floor(horas / 24);
+
+  if (dias >= 1) {
+    return `Faltan ${plural(dias, "día", "días")} y ${plural(horas % 24, "hora", "horas")}`;
+  }
+  if (horas >= 1) {
+    return `Faltan ${plural(horas, "hora", "horas")} y ${plural(minutos % 60, "minuto", "minutos")}`;
+  }
+  if (minutos >= 1) return `Faltan ${plural(minutos, "minuto", "minutos")}`;
+  return "Últimos minutos";
+}

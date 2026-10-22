@@ -27,6 +27,16 @@ export const alt = "Bono Solidario PolioPlus - Distrito Rotary 4921";
  * entera. En el telefono, ademas, una cuadrada ocupa mas alto.
  */
 export const size = { width: 1200, height: 1200 };
+
+/*
+ * Se dibuja en cada pedido y no una vez al desplegar.
+ *
+ * La tarjeta lleva la cuenta regresiva hasta el cierre: prerenderizada,
+ * todo el mundo recibiria el numero del momento del deploy, cada vez mas
+ * viejo. Asi el que comparte el link manda el numero de recien.
+ */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export const contentType = "image/png";
 
 export default async function Image() {
