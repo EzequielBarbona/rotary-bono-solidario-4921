@@ -23,6 +23,9 @@ export const VARIANTES = {
   c: { ancho: 1200, alto: 900, nota: "1200x900 (4:3)" },
   // Mismo recorte que hoy pero al doble: por si pide un minimo de pixeles.
   d: { ancho: 2400, alto: 1260, nota: "2400x1260 (1.91:1)" },
+  // La cuadrada otra vez, ya con el dibujo que llena el cuadro. URL nueva
+  // porque WhatsApp se quedo con la vista previa vieja de /pv/b.
+  e: { ancho: 1200, alto: 1200, nota: "1200x1200 (1:1) rearmada" },
 } as const;
 
 export type Variante = keyof typeof VARIANTES;

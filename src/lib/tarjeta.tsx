@@ -18,8 +18,12 @@ import { DESTINOS, ECUACION, GANCHO, LEMA, MARCA, PREMIO, SORTEO } from "@/lib/c
  * un diseno fijo.
  */
 
-// Las medidas del diseno original, sobre las que se calcula la escala.
-const ALTO_BASE = 630;
+// El ancho del diseno original, sobre el que se calcula la escala.
+//
+// Escala por ancho y no por alto a proposito: el texto va en lineas, y lo
+// que decide si una linea entra o se parte es el ancho. Escalando por alto,
+// una pieza cuadrada agrandaba las letras un 90% y se desbordaba todo.
+const ANCHO_BASE = 1200;
 
 const logoData = await readFile(
   join(process.cwd(), "assets/lockup-white-og.png"),
@@ -42,8 +46,23 @@ export function dibujarTarjeta({
   /** Texto chico en una esquina, para reconocer la variante en una prueba. */
   etiqueta?: string;
 }) {
+  /*
+   * Una pieza casi cuadrada tiene alto de sobra y el mismo ancho, asi que
+   * con la escala del apaisado queda un dibujo chico flotando en el medio.
+   * Para llenarla, el lema se parte en tres lineas —mas cortas, entran mas
+   * grandes— y todo crece un cuarto.
+   */
+  const cuadrada = alto / ancho >= 0.9;
+  const lema = cuadrada
+    ? ["Mantengamos", "la esperanza de un", "mundo libre de polio"]
+    : LEMA;
+  const premio = cuadrada
+    ? [PREMIO, DESTINOS]
+    : [`${PREMIO} ${DESTINOS}`];
+
   // Redondear: Satori acepta decimales pero el texto queda sucio.
-  const k = (n: number) => Math.round((n * alto) / ALTO_BASE);
+  const k = (n: number) =>
+    Math.round((n * ancho * (cuadrada ? 1.25 : 1)) / ANCHO_BASE);
 
   return new ImageResponse(
     (
@@ -117,7 +136,7 @@ export function dibujarTarjeta({
             lineHeight: 1.12,
           }}
         >
-          {LEMA.map((linea) => (
+          {lema.map((linea) => (
             <div key={linea}>{linea}</div>
           ))}
         </div>
@@ -179,7 +198,9 @@ export function dibujarTarjeta({
           }}
         >
           <div style={{ fontWeight: 800 }}>{MARCA}</div>
-          <div>{`${PREMIO} ${DESTINOS}`}</div>
+          {premio.map((linea) => (
+            <div key={linea}>{linea}</div>
+          ))}
           <div style={{ marginTop: k(12) }}>{SORTEO}</div>
         </div>
       </div>
