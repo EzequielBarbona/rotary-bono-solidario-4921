@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { raffleConfig } from "@/lib/config";
 import { ReservationConflictError, reserveTickets } from "@/lib/tickets";
+import { estadoDeVenta } from "@/lib/cierre";
 
 const fieldsSchema = z.object({
   buyerName: z.string().trim().min(2, "Falta el nombre."),
@@ -28,6 +29,24 @@ const numbersSchema = z
   );
 
 export async function POST(request: Request) {
+  /*
+   * El cierre de verdad es este, no el boton: la pantalla puede estar
+   * abierta desde antes de la hora, y sin este control una pestaña vieja
+   * seguiria reservando numeros el domingo.
+   *
+   * Durante la media hora de gracia sigue aceptando, para no dejar
+   * colgado al que ya transfirio.
+   */
+  if (estadoDeVenta() === "cerrada") {
+    return NextResponse.json(
+      {
+        error:
+          "La venta cerró. Si ya hiciste la transferencia, escribinos y lo resolvemos.",
+      },
+      { status: 409 }
+    );
+  }
+
   const form = await request.formData().catch(() => null);
   if (!form) {
     return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });

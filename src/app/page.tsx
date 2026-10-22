@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { raffleConfig } from "@/lib/config";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
 import { formatArs } from "@/lib/format";
@@ -9,9 +8,11 @@ import { RankingClubes } from "@/components/RankingClubes";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 import { CompartirInstagram } from "@/components/CompartirInstagram";
 import { CuentaRegresiva } from "@/components/CuentaRegresiva";
+import { BotonComprar } from "@/components/BotonComprar";
 import { rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { conLimite } from "@/lib/con-limite";
+import { ventaCerrada } from "@/lib/cierre";
 import { formatArtDayTime } from "@/lib/dates";
 import { conMemoriaCorta } from "@/lib/memoria-corta";
 import { cookies } from "next/headers";
@@ -94,6 +95,8 @@ export default async function Home() {
         }
       : null;
 
+  const cerrada = ventaCerrada();
+
   // Pie de foto para Instagram. Sale de los mismos datos que la pagina,
   // para que no terminen diciendo cosas distintas.
   const enlaceDifusion = `${raffleConfig.siteUrl}${RUTA_DISTRITO}`;
@@ -175,12 +178,7 @@ export default async function Home() {
           */}
           <p className="text-sm sm:text-base text-white/75">{SORTEO}</p>
 
-          <Link
-            href="/comprar/cantidad"
-            className="mt-4 bg-rotary-gold text-rotary-ink font-bold text-lg px-8 sm:px-10 py-4 rounded-full whitespace-nowrap hover:bg-rotary-gold-dark transition-colors"
-          >
-            Comprar bono solidario
-          </Link>
+          <BotonComprar tono="sobreAzul" className="mt-4" />
         </div>
       </section>
 
@@ -345,14 +343,11 @@ export default async function Home() {
       <section className="bg-white px-4 py-16">
         <div className="max-w-lg w-full mx-auto flex flex-col items-center gap-4 text-center">
           <p className="text-rotary-ink text-lg">
-            Elegí tus números antes de que se agoten.
+            {cerrada
+              ? "La venta de bonos ya terminó. ¡Gracias a todos los que se sumaron!"
+              : "Elegí tus números antes de que se agoten."}
           </p>
-          <Link
-            href="/comprar/cantidad"
-            className="bg-rotary-azure text-white font-bold text-lg px-10 py-4 rounded-full hover:bg-rotary-azure-dark transition-colors"
-          >
-            Comprar bono solidario
-          </Link>
+          <BotonComprar tono="sobreBlanco" />
 
           <div className="mt-8 pt-8 border-t border-rotary-ink/10 w-full flex flex-col items-center gap-3">
             <p className="text-base text-rotary-ink/70">
