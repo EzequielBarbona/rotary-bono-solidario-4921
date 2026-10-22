@@ -64,10 +64,20 @@ export function CuentaRegresiva({
   const { dias, horas, minutos, segundos } = desglosar(restante);
   const urgente = restante < UMBRAL_URGENTE;
 
+  // Para quien escucha la página: sin segundos, que cambian más rápido de
+  // lo que se leen, y sin los ceros a la izquierda de los casilleros.
+  const enPalabras = [
+    dias > 0 && `${dias} ${dias === 1 ? "día" : "días"}`,
+    `${horas} ${horas === 1 ? "hora" : "horas"}`,
+    `${minutos} ${minutos === 1 ? "minuto" : "minutos"}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <div
       role="timer"
-      aria-label={`Faltan ${dias} días, ${horas} horas y ${minutos} minutos para que cierre la venta`}
+      aria-label={`Faltan ${enPalabras} para que cierre la venta`}
       className={`w-full max-w-sm rounded-2xl px-4 py-3 sm:px-5 sm:py-4 flex flex-col items-center gap-1.5 sm:gap-2 ${
         urgente ? "bg-rotary-cardinal" : "bg-white/15"
       }`}
