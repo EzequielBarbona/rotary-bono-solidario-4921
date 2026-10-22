@@ -30,5 +30,11 @@ export const size = { width: 1200, height: 1200 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  return dibujarTarjeta({ ancho: size.width, alto: size.height });
+  /*
+   * Resumida: en el chat la miniatura mide unos 96 px, y a esa escala el
+   * lema, el premio y el sorteo son textura, no texto. Quedan el gancho,
+   * la cuenta y el cierre, al triple de tamaño. El resto esta en la
+   * pagina, a un toque de distancia.
+   */
+  return dibujarTarjeta({ ancho: size.width, alto: size.height, resumida: true });
 }
