@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { raffleConfig } from "@/lib/config";
-import { esVariante, VARIANTES } from "./variantes";
+import { datosDeVariante, esVariante } from "./variantes";
 
 /*
  * Una página por variante, solo para mirar cómo le queda la vista previa
@@ -16,18 +16,21 @@ export async function generateMetadata({
   const { v } = await params;
   if (!esVariante(v)) return { robots: { index: false, follow: false } };
 
-  const { ancho, alto, nota } = VARIANTES[v];
+  const { ancho, alto, nota, sinDescripcion } = datosDeVariante(v);
+  const descripcion = sinDescripcion
+    ? undefined
+    : "Lo recaudado va al programa PolioPlus de Rotary International.";
   return {
     metadataBase: new URL(raffleConfig.siteUrl),
     title: raffleConfig.title,
-    description: "Lo recaudado va al programa PolioPlus de Rotary International.",
+    description: descripcion,
     robots: { index: false, follow: false },
     openGraph: {
       type: "website",
       locale: "es_AR",
       siteName: "Bono Solidario PolioPlus",
       title: raffleConfig.title,
-      description: "Lo recaudado va al programa PolioPlus de Rotary International.",
+      description: descripcion,
       url: `/pv/${v}`,
       images: [
         {
@@ -48,7 +51,7 @@ export default async function PruebaVistaPrevia({
   params: Promise<{ v: string }>;
 }) {
   const { v } = await params;
-  const nota = esVariante(v) ? VARIANTES[v].nota : "variante inexistente";
+  const nota = esVariante(v) ? datosDeVariante(v).nota : "variante inexistente";
 
   return (
     <main className="flex-1 max-w-lg w-full mx-auto px-4 py-16 flex flex-col items-center gap-4 text-center">

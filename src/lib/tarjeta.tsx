@@ -42,11 +42,22 @@ export function dibujarTarjeta({
   ancho,
   alto,
   etiqueta,
+  resumida = false,
 }: {
   ancho: number;
   alto: number;
   /** Texto chico en una esquina, para reconocer la variante en una prueba. */
   etiqueta?: string;
+  /**
+   * Version para mirarse del tamaño de una uña.
+   *
+   * En el chat la miniatura mide unos 96 px: a esa escala la unica linea
+   * que se llega a leer es la primera, y el resto es textura. Esta version
+   * tira el lema, el premio y el sorteo —que estan en la pagina, a un
+   * toque de distancia— y deja el gancho, la cuenta y el cierre al triple
+   * de tamaño.
+   */
+  resumida?: boolean;
 }) {
   /*
    * Una pieza casi cuadrada tiene alto de sobra y el mismo ancho, asi que
@@ -142,31 +153,39 @@ export function dibujarTarjeta({
 
         {/* Los cortes de linea van a mano: dejarlos al wrap automatico
             parte las frases en cualquier lado. */}
+        {!resumida && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              fontSize: k(62),
+              fontWeight: 800,
+              lineHeight: 1.12,
+            }}
+          >
+            {lema.map((linea) => (
+              <div key={linea}>{linea}</div>
+            ))}
+          </div>
+        )}
+
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            fontSize: k(62),
-            fontWeight: 800,
-            lineHeight: 1.12,
-          }}
-        >
-          {lema.map((linea) => (
-            <div key={linea}>{linea}</div>
-          ))}
-        </div>
-
-        <div
-          style={{
             marginTop: k(10),
-            fontSize: k(72),
+            fontSize: k(resumida ? 118 : 72),
             fontWeight: 800,
             color: "#f7a81b",
             lineHeight: 1.1,
           }}
         >
-          {GANCHO}
+          {/* Partido en dos: a este cuerpo, en una sola linea no entra. */}
+          {(resumida ? ["¿Ya tenés", "tu bono?"] : [GANCHO]).map((linea) => (
+            <div key={linea}>{linea}</div>
+          ))}
         </div>
 
         {/* La cuenta: en la tarjeta de WhatsApp es lo unico que se lee. */}
@@ -178,7 +197,7 @@ export function dibujarTarjeta({
               padding: `${k(10)}px ${k(26)}px`,
               borderRadius: k(18),
               backgroundColor: "rgba(255,255,255,0.14)",
-              fontSize: k(40),
+              fontSize: k(resumida ? 50 : 40),
               fontWeight: 800,
             }}
           >
@@ -216,14 +235,16 @@ export function dibujarTarjeta({
           </div>
         )}
 
-        <div
-          style={{
-            marginTop: k(20),
-            width: k(560),
-            height: Math.max(2, k(3)),
-            backgroundColor: "rgba(255,255,255,0.25)",
-          }}
-        />
+        {!resumida && (
+          <div
+            style={{
+              marginTop: k(20),
+              width: k(560),
+              height: Math.max(2, k(3)),
+              backgroundColor: "rgba(255,255,255,0.25)",
+            }}
+          />
+        )}
 
         {/*
           Satori exige display:flex en cualquier div con mas de un hijo, asi
@@ -236,7 +257,7 @@ export function dibujarTarjeta({
             // Satori no hereda el textAlign del contenedor en estos
             // anidados: sin esto las lineas cortas quedan a la izquierda.
             alignItems: "center",
-            marginTop: k(18),
+            marginTop: k(resumida ? 26 : 18),
             fontSize: k(30),
             fontWeight: 400,
             color: "rgba(255,255,255,0.92)",
@@ -244,10 +265,9 @@ export function dibujarTarjeta({
           }}
         >
           <div style={{ fontWeight: 800 }}>{MARCA}</div>
-          {premio.map((linea) => (
-            <div key={linea}>{linea}</div>
-          ))}
-          <div style={{ marginTop: k(12) }}>{SORTEO}</div>
+          {!resumida &&
+            premio.map((linea) => <div key={linea}>{linea}</div>)}
+          {!resumida && <div style={{ marginTop: k(12) }}>{SORTEO}</div>}
         </div>
       </div>
     ),

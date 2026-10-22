@@ -1,5 +1,5 @@
 import { dibujarTarjeta } from "@/lib/tarjeta";
-import { esVariante, VARIANTES } from "../variantes";
+import { datosDeVariante, esVariante } from "../variantes";
 
 /*
  * La imagen de cada variante de prueba.
@@ -16,6 +16,6 @@ export async function GET(
   if (!esVariante(v)) {
     return new Response("No existe esa variante.", { status: 404 });
   }
-  const { ancho, alto, nota } = VARIANTES[v];
-  return dibujarTarjeta({ ancho, alto, etiqueta: `${v} · ${nota}` });
+  const { ancho, alto, nota, resumida } = datosDeVariante(v);
+  return dibujarTarjeta({ ancho, alto, resumida, etiqueta: `${v} · ${nota}` });
 }
