@@ -1,6 +1,6 @@
 "use client";
 
-import { RUTA_DISTRITO } from "@/lib/clubs";
+import { RUTA_ULTIMOS } from "@/lib/clubs";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 /*
@@ -12,7 +12,7 @@ import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 export function ShareWhatsAppButton({
   label = "Compartir por WhatsApp",
   className = "",
-  ruta = RUTA_DISTRITO,
+  ruta = RUTA_ULTIMOS,
   mensaje,
 }: {
   label?: string;

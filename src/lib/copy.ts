@@ -1,6 +1,8 @@
 import { raffleConfig } from "@/lib/config";
 import { formatArs, formatDrawDate } from "@/lib/format";
 import { childrenProtected } from "@/lib/impact";
+import { CIERRE } from "@/lib/cierre";
+import { formatArtDayTime } from "@/lib/dates";
 
 /*
  * Los textos de la campaña, escritos una sola vez.
@@ -60,16 +62,17 @@ export const LLAMADO = "Escaneá y compralo en un minuto";
  */
 export const RECORDATORIO = [
   `${GANCHO} 🎟️`,
-  "",
   `${MARCA}.`,
-  "",
+  // La hora de cierre bien arriba: es el dato que hace actuar hoy.
+  CIERRE && `⏳ La venta cierra el ${formatArtDayTime(CIERRE)}.`,
   ECUACION
     ? `${ECUACION}. Con cada bono ayudás a vacunar chicos contra la polio.`
     : "Con cada bono ayudás a vacunar chicos contra la polio.",
-  "",
   `Y participás por 5 noches para 2 personas, elegí tu destino: ${DESTINOS}, del 30 de noviembre al 4 de diciembre.`,
-  "",
   `${SORTEO}.`,
-  "",
   `Entrá ahora y compralo en un minuto. ${URGENCIA} 👇`,
-].join("\n");
+]
+  .filter(Boolean)
+  // Renglon en blanco entre parrafos: en WhatsApp, un bloque corrido no
+  // se lee.
+  .join("\n\n");

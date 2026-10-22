@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { CLUB_COOKIE, CLUB_COOKIE_MAX_AGE, clubDeSlug, slugDeClub } from "@/lib/clubs";
+import {
+  CLUB_COOKIE,
+  CLUB_COOKIE_MAX_AGE,
+  clubDeSlug,
+  RUTA_DISTRITO,
+  RUTA_ULTIMOS,
+  slugDeClub,
+} from "@/lib/clubs";
 
 /*
  * Entradas oficiales del distrito. "/" es la raiz de siempre y "/sumate"
@@ -14,7 +21,7 @@ import { CLUB_COOKIE, CLUB_COOKIE_MAX_AGE, clubDeSlug, slugDeClub } from "@/lib/
  * Las dos limpian el club: quien entra por el canal del distrito no lo
  * invito ningun club.
  */
-const ENTRADAS_DISTRITO = new Set(["/", "/sumate"]);
+const ENTRADAS_DISTRITO = new Set(["/", RUTA_DISTRITO, RUTA_ULTIMOS]);
 
 const OPCIONES_COOKIE = {
   path: "/",
@@ -58,8 +65,8 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (ENTRADAS_DISTRITO.has(pathname)) {
-    // "/sumate" no tiene pagina propia: muestra la home sin cambiar la
-    // URL que la persona tiene a la vista.
+    // Ni "/sumate" ni "/ultimos" tienen pagina propia: muestran la home
+    // sin cambiar la URL que la persona tiene a la vista.
     const respuesta =
       pathname === "/"
         ? NextResponse.next()
@@ -91,5 +98,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/sumate", "/c/:slug"],
+  matcher: ["/", "/sumate", "/ultimos", "/c/:slug"],
 };

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatArs } from "@/lib/format";
-import { RUTA_DISTRITO, rutaDeClub } from "@/lib/clubs";
+import { RUTA_ULTIMOS, rutaDeClub } from "@/lib/clubs";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 
 type OrderStatus = "PENDIENTE" | "PAGADO" | "EXPIRADO" | "CANCELADO";
@@ -167,7 +167,7 @@ export function DetalleOrden({
           )}
 
           <ShareWhatsAppButton
-            ruta={rutaClub ?? RUTA_DISTRITO}
+            ruta={rutaClub ?? RUTA_ULTIMOS}
             mensaje={mensajeParaCompartir}
           />
         </div>

@@ -213,3 +213,15 @@ export function rutaDeClub(club: string | null | undefined): string | null {
  * pruebas, y la tarjeta viaja dentro del mensaje.
  */
 export const RUTA_DISTRITO = "/sumate";
+
+/**
+ * La entrada para difundir ahora, en el tramo final.
+ *
+ * Es otra puerta a la misma home, igual que /sumate, y existe por el
+ * mismo motivo: WhatsApp arma la vista previa en el telefono que envia y
+ * se la guarda por link. /sumate ya circulo con las tarjetas viejas, asi
+ * que quien lo reenvia manda esa, sin la cuenta regresiva. Este link no
+ * lo mando nadie todavia, de modo que la tarjeta se dibuja de cero y sale
+ * con el tiempo que falta de verdad.
+ */
+export const RUTA_ULTIMOS = "/ultimos";
