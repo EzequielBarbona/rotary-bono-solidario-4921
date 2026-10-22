@@ -1,31 +1,30 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { DESTINOS, ECUACION, GANCHO, LEMA, MARCA, PREMIO, SORTEO } from "@/lib/copy";
-import { CIERRE, faltanEnPalabras, ventaCerrada } from "@/lib/cierre";
+import { ECUACION, MARCA } from "@/lib/copy";
+import { CIERRE, tiempoQueFalta, ventaCerrada } from "@/lib/cierre";
 import { formatArtDayTime } from "@/lib/dates";
 
 /*
  * La tarjeta que muestran WhatsApp, Facebook e Instagram cuando alguien
  * pega el link.
  *
- * Es lo primero que ve un rotario antes de decidir si abre el sitio, y
- * abre con la causa. El premio va despues y en letra mas chica: es la
- * excusa para colaborar, no el motivo.
+ * Dice poco y grande. En el chat la miniatura mide unos 96 px: a esa
+ * escala una tarjeta con el lema, el premio y el sorteo es textura, no
+ * texto. Quedan el apuro, la cuenta regresiva y la cuenta de las vacunas;
+ * el resto esta en la pagina, a un toque de distancia.
  *
- * El dibujo se escala a partir del alto, asi la misma pieza sirve para
- * cualquier proporcion. WhatsApp decide si muestra la tarjeta grande o la
- * miniatura al costado segun la imagen, y cual le gusta no se deduce
- * leyendo: hay que probar. Por eso esto es una funcion con medidas y no
- * un diseno fijo.
+ * Cuadrada, y no el 1200x630 de manual. Probado en un chat el 22/10/2026
+ * contra La Nacion y YouTube: WhatsApp de escritorio muestra TODAS las
+ * vistas previas en formato compacto por mas que la imagen sea grande —la
+ * de YouTube es de 480x360 y sale igual—, asi que la proporcion no decide
+ * entre tarjeta grande y chica. Lo que si decide es el recorte: el
+ * compacto recorta un cuadrado del centro, y de una pieza apaisada se come
+ * el logo y el pie.
  */
 
-// El ancho del diseno original, sobre el que se calcula la escala.
-//
-// Escala por ancho y no por alto a proposito: el texto va en lineas, y lo
-// que decide si una linea entra o se parte es el ancho. Escalando por alto,
-// una pieza cuadrada agrandaba las letras un 90% y se desbordaba todo.
-const ANCHO_BASE = 1200;
+// El lado del diseno original, sobre el que se calcula la escala.
+const LADO_BASE = 1200;
 
 const logoData = await readFile(
   join(process.cwd(), "assets/lockup-white-og.png"),
@@ -38,70 +37,12 @@ const [openSansRegular, openSansExtraBold] = await Promise.all([
   readFile(join(process.cwd(), "assets/opensans-800.ttf")),
 ]);
 
-export function dibujarTarjeta({
-  ancho,
-  alto,
-  etiqueta,
-  resumida = false,
-}: {
-  ancho: number;
-  alto: number;
-  /** Texto chico en una esquina, para reconocer la variante en una prueba. */
-  etiqueta?: string;
-  /**
-   * Version para mirarse del tamaño de una uña.
-   *
-   * En el chat la miniatura mide unos 96 px: a esa escala la unica linea
-   * que se llega a leer es la primera, y el resto es textura. Esta version
-   * tira el lema, el premio y el sorteo —que estan en la pagina, a un
-   * toque de distancia— y deja el gancho, la cuenta y el cierre al triple
-   * de tamaño.
-   */
-  resumida?: boolean;
-}) {
-  /*
-   * Una pieza casi cuadrada tiene alto de sobra y el mismo ancho, asi que
-   * con la escala del apaisado queda un dibujo chico flotando en el medio.
-   * Para llenarla, el lema se parte en tres lineas —mas cortas, entran mas
-   * grandes— y todo crece un cuarto.
-   */
-  const cuadrada = alto / ancho >= 0.9;
-  const lema = cuadrada
-    ? ["Mantengamos", "la esperanza de un", "mundo libre de polio"]
-    : LEMA;
-  const premio = cuadrada
-    ? [PREMIO, DESTINOS]
-    : [`${PREMIO} ${DESTINOS}`];
-
+export function dibujarTarjeta({ ancho, alto }: { ancho: number; alto: number }) {
   // Redondear: Satori acepta decimales pero el texto queda sucio.
-  const k = (n: number) =>
-    Math.round((n * ancho * (cuadrada ? 1.25 : 1)) / ANCHO_BASE);
+  const k = (n: number) => Math.round((n * ancho) / LADO_BASE);
 
-  /*
-   * El cierre, que es lo que apura. Las lineas salen de un arreglo y no de
-   * un fragmento: Satori ve el fragmento como un solo hijo y acomoda todo
-   * en fila, una al lado de la otra.
-   */
-  const lineasCierre = !CIERRE
-    ? []
-    : ventaCerrada()
-      ? [{ texto: "La venta cerró", tam: 32, color: "white" }]
-      : [
-          { texto: "ÚLTIMAS HORAS PARA AYUDAR", tam: 24, color: "#f7a81b" },
-          /*
-           * La cuenta se dibuja en el momento en que WhatsApp pide la
-           * imagen, asi que el que comparte el link manda el numero de
-           * recien. Despues WhatsApp se guarda esa vista previa por link,
-           * y por eso abajo va siempre la fecha de cierre: si el numero
-           * envejece, al lado esta el dato que no se vence.
-           */
-          { texto: faltanEnPalabras() ?? "", tam: 38, color: "white" },
-          {
-            texto: `Cierra el ${formatArtDayTime(CIERRE)}`,
-            tam: 24,
-            color: "rgba(255,255,255,0.85)",
-          },
-        ].filter((l) => l.texto);
+  const cerrada = ventaCerrada();
+  const falta = cerrada ? null : tiempoQueFalta();
 
   return new ImageResponse(
     (
@@ -114,9 +55,7 @@ export function dibujarTarjeta({
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          // Poco aire arriba y abajo: la tarjeta se ve chica en el chat,
-          // asi que el espacio va todo a que las letras sean grandes.
-          padding: `${k(18)}px ${k(40)}px ${k(24)}px`,
+          padding: `${k(40)}px ${k(40)}px`,
           backgroundImage: "linear-gradient(135deg, #0067c8 0%, #17458f 100%)",
           color: "white",
           fontFamily: "Open Sans",
@@ -146,70 +85,50 @@ export function dibujarTarjeta({
           }}
         />
 
-        {etiqueta && (
-          <div
-            style={{
-              position: "absolute",
-              top: k(10),
-              left: k(16),
-              fontSize: k(22),
-              color: "rgba(255,255,255,0.65)",
-            }}
-          >
-            {etiqueta}
-          </div>
-        )}
-
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoSrc} width={k(300)} alt="" style={{ marginBottom: k(14) }} />
+        <img src={logoSrc} width={k(380)} alt="" style={{ marginBottom: k(44) }} />
 
-        {/* Los cortes de linea van a mano: dejarlos al wrap automatico
-            parte las frases en cualquier lado. */}
-        {!resumida && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              fontSize: k(62),
-              fontWeight: 800,
-              lineHeight: 1.12,
-            }}
-          >
-            {lema.map((linea) => (
-              <div key={linea}>{linea}</div>
-            ))}
-          </div>
-        )}
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            marginTop: k(10),
-            fontSize: k(resumida ? 118 : 72),
-            fontWeight: 800,
-            color: "#f7a81b",
-            lineHeight: 1.1,
-          }}
-        >
-          {/* Partido en dos: a este cuerpo, en una sola linea no entra. */}
-          {(resumida ? ["¿Ya tenés", "tu bono?"] : [GANCHO]).map((linea) => (
-            <div key={linea}>{linea}</div>
-          ))}
+        <div style={{ fontSize: k(70), fontWeight: 800, color: "#f7a81b" }}>
+          {cerrada ? "La venta cerró" : "Últimas horas para comprar"}
         </div>
 
-        {/* La cuenta: en la tarjeta de WhatsApp es lo unico que se lee. */}
+        {/* La cuenta regresiva, que es lo que mas pesa de toda la tarjeta. */}
+        {falta && (
+          <div
+            style={{
+              // 124 y no mas: "2 días y 23 horas" es lo mas largo que puede
+              // decir, y a este cuerpo entra justo en una linea.
+              fontSize: k(124),
+              fontWeight: 800,
+              lineHeight: 1.1,
+              marginTop: k(14),
+            }}
+          >
+            {falta}
+          </div>
+        )}
+
+        {CIERRE && (
+          <div
+            style={{
+              fontSize: k(38),
+              marginTop: k(falta ? 6 : 16),
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            {`${cerrada ? "Cerró" : "Cierra"} el ${formatArtDayTime(CIERRE)}`}
+          </div>
+        )}
+
         {ECUACION && (
           <div
             style={{
               display: "flex",
-              marginTop: k(16),
-              padding: `${k(10)}px ${k(26)}px`,
-              borderRadius: k(18),
+              marginTop: k(46),
+              padding: `${k(16)}px ${k(34)}px`,
+              borderRadius: k(24),
               backgroundColor: "rgba(255,255,255,0.14)",
-              fontSize: k(resumida ? 50 : 40),
+              fontSize: k(58),
               fontWeight: 800,
             }}
           >
@@ -217,69 +136,8 @@ export function dibujarTarjeta({
           </div>
         )}
 
-        {/*
-          El cierre, que es lo que apura.
-          No va la cuenta regresiva en vivo: la imagen se dibuja cuando
-          WhatsApp pide el link y despues se queda guardada en el telefono
-          del que la mando, asi que un "faltan 2 dias" quedaria congelado y
-          mintiendo. La fecha de cierre no se vence nunca.
-        */}
-        {lineasCierre.length > 0 && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              marginTop: k(16),
-              padding: `${k(8)}px ${k(26)}px ${k(10)}px`,
-              borderRadius: k(18),
-              backgroundColor: "rgba(247,168,27,0.18)",
-            }}
-          >
-            {lineasCierre.map((linea) => (
-              <div
-                key={linea.texto}
-                style={{ fontSize: k(linea.tam), fontWeight: 800, color: linea.color }}
-              >
-                {linea.texto}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!resumida && (
-          <div
-            style={{
-              marginTop: k(20),
-              width: k(560),
-              height: Math.max(2, k(3)),
-              backgroundColor: "rgba(255,255,255,0.25)",
-            }}
-          />
-        )}
-
-        {/*
-          Satori exige display:flex en cualquier div con mas de un hijo, asi
-          que cada linea de abajo se arma como un solo string.
-        */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            // Satori no hereda el textAlign del contenedor en estos
-            // anidados: sin esto las lineas cortas quedan a la izquierda.
-            alignItems: "center",
-            marginTop: k(resumida ? 26 : 18),
-            fontSize: k(30),
-            fontWeight: 400,
-            color: "rgba(255,255,255,0.92)",
-            lineHeight: 1.25,
-          }}
-        >
-          <div style={{ fontWeight: 800 }}>{MARCA}</div>
-          {!resumida &&
-            premio.map((linea) => <div key={linea}>{linea}</div>)}
-          {!resumida && <div style={{ marginTop: k(12) }}>{SORTEO}</div>}
+        <div style={{ marginTop: k(40), fontSize: k(38), fontWeight: 800 }}>
+          {MARCA}
         </div>
       </div>
     ),
