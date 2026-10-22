@@ -83,7 +83,7 @@ export function CuentaRegresiva({
       }`}
     >
       <span className="uppercase tracking-widest text-xs font-bold text-rotary-gold">
-        {urgente ? "¡Últimas horas!" : "La venta cierra en"}
+        Últimas horas para ayudar
       </span>
 
       <div className="flex items-start gap-2 sm:gap-3">

@@ -135,6 +135,16 @@ export default async function Home() {
             priority
             className="w-56 sm:w-[28rem] h-auto"
           />
+
+          {/* Arriba de todo: es lo primero que tiene que ver el que entra. */}
+          {cierre && (
+            <CuentaRegresiva
+              cierraEn={cierre.cierraEn}
+              restanteInicial={cierre.restante}
+              textoCierre={cierre.texto}
+            />
+          )}
+
           {/*
             El mismo orden que el volante: lema, gancho y la cuenta. Quien
             escanea el QR tiene que reconocer el papel que acaba de leer.
@@ -164,15 +174,6 @@ export default async function Home() {
             boton de comprar abajo del pliegue en el telefono.
           */}
           <p className="text-sm sm:text-base text-white/75">{SORTEO}</p>
-
-          {/* Justo arriba del botón: el apuro sirve si hay dónde apretar. */}
-          {cierre && (
-            <CuentaRegresiva
-              cierraEn={cierre.cierraEn}
-              restanteInicial={cierre.restante}
-              textoCierre={cierre.texto}
-            />
-          )}
 
           <Link
             href="/comprar/cantidad"
