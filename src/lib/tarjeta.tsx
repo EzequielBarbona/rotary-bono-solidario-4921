@@ -2,6 +2,8 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DESTINOS, ECUACION, GANCHO, LEMA, MARCA, PREMIO, SORTEO } from "@/lib/copy";
+import { CIERRE, ventaCerrada } from "@/lib/cierre";
+import { formatArtDayTime } from "@/lib/dates";
 
 /*
  * La tarjeta que muestran WhatsApp, Facebook e Instagram cuando alguien
@@ -63,6 +65,20 @@ export function dibujarTarjeta({
   // Redondear: Satori acepta decimales pero el texto queda sucio.
   const k = (n: number) =>
     Math.round((n * ancho * (cuadrada ? 1.25 : 1)) / ANCHO_BASE);
+
+  /*
+   * El cierre, que es lo que apura. Las lineas salen de un arreglo y no de
+   * un fragmento: Satori ve el fragmento como un solo hijo y acomoda todo
+   * en fila, una al lado de la otra.
+   */
+  const lineasCierre = !CIERRE
+    ? []
+    : ventaCerrada()
+      ? [{ texto: "La venta cerró", tam: 32, color: "white" }]
+      : [
+          { texto: "ÚLTIMAS HORAS PARA AYUDAR", tam: 24, color: "#f7a81b" },
+          { texto: `Cierra el ${formatArtDayTime(CIERRE)}`, tam: 30, color: "white" },
+        ];
 
   return new ImageResponse(
     (
@@ -167,6 +183,36 @@ export function dibujarTarjeta({
             }}
           >
             {ECUACION}
+          </div>
+        )}
+
+        {/*
+          El cierre, que es lo que apura.
+          No va la cuenta regresiva en vivo: la imagen se dibuja cuando
+          WhatsApp pide el link y despues se queda guardada en el telefono
+          del que la mando, asi que un "faltan 2 dias" quedaria congelado y
+          mintiendo. La fecha de cierre no se vence nunca.
+        */}
+        {lineasCierre.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              marginTop: k(16),
+              padding: `${k(8)}px ${k(26)}px ${k(10)}px`,
+              borderRadius: k(18),
+              backgroundColor: "rgba(247,168,27,0.18)",
+            }}
+          >
+            {lineasCierre.map((linea) => (
+              <div
+                key={linea.texto}
+                style={{ fontSize: k(linea.tam), fontWeight: 800, color: linea.color }}
+              >
+                {linea.texto}
+              </div>
+            ))}
           </div>
         )}
 
