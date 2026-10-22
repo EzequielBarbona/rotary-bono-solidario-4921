@@ -2,15 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { raffleConfig } from "@/lib/config";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
-import { formatArs, formatDrawDate } from "@/lib/format";
+import { formatArs } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { PersonPictogram } from "@/components/PersonPictogram";
 import { RankingClubes } from "@/components/RankingClubes";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 import { CompartirInstagram } from "@/components/CompartirInstagram";
+import { CuentaRegresiva } from "@/components/CuentaRegresiva";
 import { rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { conLimite } from "@/lib/con-limite";
+import { formatArtDayTime } from "@/lib/dates";
 import { conMemoriaCorta } from "@/lib/memoria-corta";
 import { cookies } from "next/headers";
 import { CLUB_COOKIE, clubDeSlug, RUTA_DISTRITO, slugDeClub } from "@/lib/clubs";
@@ -67,6 +69,31 @@ export default async function Home() {
     ? `/flyer/club/${slugDeClub(clubVisita)}`
     : "/flyer/distrito";
 
+  /*
+   * El cierre de la venta, para la cuenta regresiva. Se resuelve aca
+   * porque el instante y su version en palabras tienen que salir del
+   * servidor: el navegador no ve las variables de entorno y, si cada uno
+   * armara el texto por su lado, el primer dibujo no coincidiria.
+   */
+  const cierraEn = raffleConfig.salesCloseAt
+    ? new Date(raffleConfig.salesCloseAt)
+    : null;
+  const cierre =
+    cierraEn && !Number.isNaN(cierraEn.getTime())
+      ? {
+          cierraEn: cierraEn.getTime(),
+          /*
+           * La página es force-dynamic: se dibuja de nuevo en cada visita,
+           * así que leer el reloj del servidor es justamente lo que hace
+           * falta. La regla apunta a los componentes del navegador, que sí
+           * se vuelven a dibujar solos.
+           */
+          // eslint-disable-next-line react-hooks/purity
+          restante: cierraEn.getTime() - Date.now(),
+          texto: formatArtDayTime(cierraEn),
+        }
+      : null;
+
   // Pie de foto para Instagram. Sale de los mismos datos que la pagina,
   // para que no terminen diciendo cosas distintas.
   const enlaceDifusion = `${raffleConfig.siteUrl}${RUTA_DISTRITO}`;
@@ -99,20 +126,20 @@ export default async function Home() {
           aria-hidden
           className="pointer-events-none absolute -left-16 bottom-[-6rem] w-56 h-56 rounded-full border-[16px] border-rotary-gold/25"
         />
-        <div className="relative max-w-3xl w-full mx-auto px-4 pt-8 sm:pt-12 pb-16 sm:pb-20 flex flex-col items-center gap-4 sm:gap-5 text-center">
+        <div className="relative max-w-3xl w-full mx-auto px-4 pt-8 sm:pt-12 pb-16 sm:pb-20 flex flex-col items-center gap-3 sm:gap-5 text-center">
           <Image
             src="/brand/rotary-endpolio-lockup-white.png"
             alt="Rotary Distrito 4921 - End Polio Now"
             width={340}
             height={152}
             priority
-            className="w-64 sm:w-[28rem] h-auto"
+            className="w-56 sm:w-[28rem] h-auto"
           />
           {/*
             El mismo orden que el volante: lema, gancho y la cuenta. Quien
             escanea el QR tiene que reconocer el papel que acaba de leer.
           */}
-          <span className="uppercase tracking-widest text-sm font-semibold text-rotary-gold">
+          <span className="uppercase tracking-wide sm:tracking-widest text-[0.7rem] sm:text-sm font-semibold text-rotary-gold">
             {MARCA}
           </span>
           {/*
@@ -131,15 +158,25 @@ export default async function Home() {
               {ECUACION}
             </p>
           )}
-          <p className="text-lg text-white/90">
-            Fecha del sorteo {formatDrawDate(raffleConfig.drawDate)}
-          </p>
-          <p className="text-base text-white/70 -mt-3">
-            Por la Lotería Nacional, sorteo nocturno
-          </p>
+          {/*
+            El sorteo en una linea y en letra chica: ahora el dato que
+            apura es el contador, y las dos lineas que habia acá dejaban el
+            boton de comprar abajo del pliegue en el telefono.
+          */}
+          <p className="text-sm sm:text-base text-white/75">{SORTEO}</p>
+
+          {/* Justo arriba del botón: el apuro sirve si hay dónde apretar. */}
+          {cierre && (
+            <CuentaRegresiva
+              cierraEn={cierre.cierraEn}
+              restanteInicial={cierre.restante}
+              textoCierre={cierre.texto}
+            />
+          )}
+
           <Link
             href="/comprar/cantidad"
-            className="mt-4 bg-rotary-gold text-rotary-ink font-bold text-lg px-10 py-4 rounded-full hover:bg-rotary-gold-dark transition-colors"
+            className="mt-4 bg-rotary-gold text-rotary-ink font-bold text-lg px-8 sm:px-10 py-4 rounded-full whitespace-nowrap hover:bg-rotary-gold-dark transition-colors"
           >
             Comprar bono solidario
           </Link>

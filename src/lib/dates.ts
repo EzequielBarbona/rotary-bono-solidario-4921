@@ -28,6 +28,30 @@ export function formatArtDayMonth(date: Date): string {
   return `${dia}/${mes}`;
 }
 
+const DIAS = [
+  "domingo",
+  "lunes",
+  "martes",
+  "miércoles",
+  "jueves",
+  "viernes",
+  "sábado",
+];
+
+/**
+ * Formatea una fecha como "sábado 24/10 a las 18:00" en horario argentino.
+ *
+ * El dia de la semana escrito a mano y no con Intl: el texto lo arma el
+ * servidor y lo vuelve a dibujar el navegador, y si cada uno elige la
+ * traduccion por su cuenta React se queja de que el HTML no coincide.
+ */
+export function formatArtDayTime(date: Date): string {
+  const shifted = new Date(date.getTime() + ART_OFFSET_MS);
+  const hora = String(shifted.getUTCHours()).padStart(2, "0");
+  const minuto = String(shifted.getUTCMinutes()).padStart(2, "0");
+  return `${DIAS[shifted.getUTCDay()]} ${formatArtDayMonth(date)} a las ${hora}:${minuto}`;
+}
+
 /** Formatea una fecha como "dd/mm/aaaa" en horario argentino. */
 export function formatArtDate(date: Date): string {
   const shifted = new Date(date.getTime() + ART_OFFSET_MS);

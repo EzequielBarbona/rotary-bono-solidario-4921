@@ -8,6 +8,16 @@ export const raffleConfig = {
   totalTickets: Number(process.env.RAFFLE_TOTAL_TICKETS ?? 1000),
   ticketPriceArs: Number(process.env.RAFFLE_TICKET_PRICE_ARS ?? 0),
   drawDate: process.env.RAFFLE_DRAW_DATE ?? "",
+  /*
+   * Cuando cierra la venta: el sabado 24/10/2026 a las 18:00, unas horas
+   * antes del sorteo nocturno.
+   *
+   * Va el instante completo con el offset argentino y no solo la fecha:
+   * la cuenta regresiva corre en el telefono de cada uno, y asi marca lo
+   * mismo para alguien en Neuquen que para alguien de vacaciones en
+   * Brasil. Vacio apaga el contador.
+   */
+  salesCloseAt: process.env.RAFFLE_SALES_CLOSE_AT ?? "2026-10-24T18:00:00-03:00",
   holdMinutes: Number(process.env.RAFFLE_HOLD_MINUTES ?? 72 * 60),
   maxTicketsPerOrder: 50,
   maxReceiptSizeBytes: 8 * 1024 * 1024,
