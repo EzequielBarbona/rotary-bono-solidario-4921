@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAdminAuthorized } from "@/lib/admin-auth";
 import { DISTRICT_CLUBS } from "@/lib/clubs";
+import { SOCIO_ACTUAL } from "@/lib/socios-actuales";
 
 /**
  * Los socios de un club, para la lista desplegable de Difusion.
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
   }
 
   const socios = await prisma.clubSocio.findMany({
-    where: { club },
+    where: { club, ...SOCIO_ACTUAL },
     select: {
       id: true,
       nombre: true,

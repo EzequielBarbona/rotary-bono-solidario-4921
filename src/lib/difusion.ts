@@ -3,6 +3,7 @@ import { DISTRICT_CLUBS, rutaDeClub, slugDeClub } from "@/lib/clubs";
 import { childrenProtected } from "@/lib/impact";
 import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
 import { marcarMismaPersona, type MarcaMismaPersona } from "@/lib/misma-persona";
+import { SOCIO_ACTUAL } from "@/lib/socios-actuales";
 
 export type ContactoClub = {
   id: number;
@@ -57,10 +58,13 @@ export async function clubesParaDifusion(): Promise<ClubParaDifusion[]> {
     rankingPorClub(),
     // Solo la cuenta: la lista de cada club se pide recién al abrirla, para
     // no mandar unos 1.800 socios en cada carga de la página.
-    prisma.clubSocio.groupBy({ by: ["club"], _count: { _all: true } }),
+    prisma.clubSocio.groupBy({ by: ["club"], where: SOCIO_ACTUAL, _count: { _all: true } }),
     prisma.clubSocio.groupBy({
       by: ["club"],
-      where: { OR: [{ email: { not: null } }, { telefono: { not: null } }] },
+      where: {
+        ...SOCIO_ACTUAL,
+        OR: [{ email: { not: null } }, { telefono: { not: null } }],
+      },
       _count: { _all: true },
     }),
   ]);
