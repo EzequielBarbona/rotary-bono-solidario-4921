@@ -78,6 +78,10 @@ export async function POST(request: Request) {
 
   await prisma.clubDatos.upsert({ where: { club }, update: {}, create: { club } });
 
+  // Un mismo instante para todo el club: asi la marca de "visto" se puede
+  // comparar de una contra el momento en que arranco la carga.
+  const visto = new Date();
+
   let cargados = 0;
   for (const s of cuerpo.socios ?? []) {
     const nombre = limpio(s.nombre);
@@ -97,6 +101,7 @@ export async function POST(request: Request) {
         rol: limpio(s.rol),
         email,
         telefono,
+        vistoAt: visto,
       },
       // Una recarga del padrón no pisa lo que ya se completó cruzando con
       // las órdenes: correo y teléfono solo se actualizan si My Rotary
@@ -108,6 +113,7 @@ export async function POST(request: Request) {
         rol: limpio(s.rol),
         ...(email ? { email } : {}),
         ...(telefono ? { telefono } : {}),
+        vistoAt: visto,
       },
     });
     cargados++;

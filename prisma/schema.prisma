@@ -122,6 +122,13 @@ model ClubSocio {
   origenContacto String?
   /// Numero de orden con la que se completaron los datos, para poder revisarlo.
   ordenId  Int?
+  /// Cuando lo vimos por ultima vez en el padron de My Rotary.
+  ///
+  /// La importacion agrega y actualiza, pero nunca borra: sin esta marca, el
+  /// que se dio de baja queda como socio para siempre y no hay forma de
+  /// distinguirlo. Con ella, los que quedaron viejos despues de una carga son
+  /// exactamente los que ya no figuran.
+  vistoAt  DateTime?
   datos    ClubDatos @relation(fields: [club], references: [club], onDelete: Cascade)
 
   @@index([club])
