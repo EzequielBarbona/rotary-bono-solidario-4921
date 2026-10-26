@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { SOCIO_ACTUAL } from "@/lib/socios-actuales";
 
 /*
  * Completa el teléfono y el correo de los socios con lo que dejaron al
@@ -140,6 +141,12 @@ export type ResultadoCruce = {
   /** Datos completados antes que ya no cumplen las reglas y se sacaron. */
   retirados: { socio: string; club: string; orden: number }[];
   dudosos: { socio: string; club: string; motivo: string }[];
+  /** Un mismo teléfono o correo en más de un socio: lo decide una persona. */
+  repetidos: {
+    tipo: "teléfono" | "correo";
+    dato: string;
+    socios: { socio: string; club: string; origen: string }[];
+  }[];
 };
 
 /**
@@ -151,7 +158,11 @@ export type ResultadoCruce = {
  * las veces que haga falta.
  */
 export async function cruzarSociosConOrdenes(): Promise<ResultadoCruce> {
+  // Solo los que siguen en el padrón: completarle el teléfono a alguien
+  // que ya se dio de baja no sirve, y encima le robaría la compra al socio
+  // actual que sí es esa persona.
   const socios: Socio[] = await prisma.clubSocio.findMany({
+    where: SOCIO_ACTUAL,
     select: {
       id: true, club: true, nombre: true, onlineId: true, email: true,
       telefono: true, origenContacto: true, ordenId: true,
@@ -166,20 +177,32 @@ export async function cruzarSociosConOrdenes(): Promise<ResultadoCruce> {
   });
   const ordenPorId = new Map(ordenes.map((o) => [o.id, o]));
 
-  const resultado: ResultadoCruce = { revisados: 0, completados: [], retirados: [], dudosos: [] };
+  const resultado: ResultadoCruce = { revisados: 0, completados: [], retirados: [], dudosos: [], repetidos: [] };
 
   // 1) Lo completado antes que hoy no se sostiene, se retira.
+  /** El socio como vino de My Rotary: sin los datos que le pegó esa orden. */
+  const sinLoDeLaOrden = (s: Socio, o: Orden | undefined): Socio => ({
+    ...s,
+    origenContacto: null,
+    email: o && correoReal(s.email) === correoReal(o.buyerEmail) ? null : s.email,
+    telefono: o && telefonoReal(s.telefono) === telefonoReal(o.buyerPhone) ? null : s.telefono,
+  });
+
+  /** Le saca a un socio los datos que había tomado de una compra. */
+  const retirar = async (s: Socio, o: Orden | undefined) => {
+    const original = sinLoDeLaOrden(s, o);
+    await prisma.clubSocio.update({
+      where: { id: s.id },
+      data: { email: original.email, telefono: original.telefono, origenContacto: null, ordenId: null },
+    });
+    Object.assign(s, { email: original.email, telefono: original.telefono, origenContacto: null, ordenId: null });
+    resultado.retirados.push({ socio: s.nombre, club: s.club, orden: o?.id ?? 0 });
+  };
+
   for (const s of socios) {
     if (!s.origenContacto?.startsWith("orden") || !s.ordenId) continue;
     const o = ordenPorId.get(s.ordenId);
-    // Para reevaluar se lo mira como vino de My Rotary: sin los datos que
-    // le pegó esa misma orden.
-    const original: Socio = {
-      ...s,
-      origenContacto: null,
-      email: o && s.email === o.buyerEmail.trim() ? null : s.email,
-      telefono: o && s.telefono === o.buyerPhone.trim() ? null : s.telefono,
-    };
+    const original = sinLoDeLaOrden(s, o);
     const regla = o ? evidencia(original, o) : null;
     if (regla) {
       const origen = regla === "nombre" ? "orden-nombre" : "orden";
@@ -189,12 +212,7 @@ export async function cruzarSociosConOrdenes(): Promise<ResultadoCruce> {
       }
       continue;
     }
-    await prisma.clubSocio.update({
-      where: { id: s.id },
-      data: { email: original.email, telefono: original.telefono, origenContacto: null, ordenId: null },
-    });
-    Object.assign(s, { email: original.email, telefono: original.telefono, origenContacto: null, ordenId: null });
-    resultado.retirados.push({ socio: s.nombre, club: s.club, orden: o?.id ?? 0 });
+    await retirar(s, o);
   }
 
   // 2) Completar a quienes les falta algo.
@@ -220,12 +238,63 @@ export async function cruzarSociosConOrdenes(): Promise<ResultadoCruce> {
     if (mejor) candidatas.set(s.id, { ordenes: lista, regla: mejor });
   }
 
-  // Un comprador que coincide con dos socios no se le asigna a ninguno.
-  const sociosPorPersona = new Map<string, number>();
-  for (const { ordenes: os } of candidatas.values()) {
-    for (const clave of new Set(os.map(personaDeOrden))) {
-      sociosPorPersona.set(clave, (sociosPorPersona.get(clave) ?? 0) + 1);
-    }
+  /*
+   * Quién se atribuye cada comprador.
+   *
+   * Que dos socios apunten al mismo comprador no siempre es un empate:
+   *
+   * - Si a uno lo respalda el correo o el teléfono y al otro solo el
+   *   nombre, gana el primero. Es el caso de padre e hijo en el mismo club:
+   *   la compra de "Federico Mario Ducasse" lleva el correo de Federico, y
+   *   a Mario lo alcanzaba apenas porque comparten dos palabras.
+   * - Si los dos socios son la misma persona en clubes distintos —en
+   *   Rotary se puede— la compra es de los dos y se completa en ambos.
+   */
+  const rangoDe = (x: Regla) => (x === "nombre" ? 1 : 0);
+  const reclamos = new Map<string, { socio: Socio; regla: Regla }[]>();
+
+  // Los que ya tienen una compra cargada siguen reclamándola: si no, el que
+  // entra por nombre se la lleva solo porque el otro ya no está pendiente.
+  for (const s of socios) {
+    if (!s.ordenId || !s.origenContacto?.startsWith("orden")) continue;
+    const o = ordenPorId.get(s.ordenId);
+    if (!o) continue;
+    const clave = personaDeOrden(o);
+    if (!reclamos.has(clave)) reclamos.set(clave, []);
+    reclamos.get(clave)!.push({ socio: s, regla: s.origenContacto === "orden" ? "correo" : "nombre" });
+  }
+
+  for (const s of pendientes) {
+    const c = candidatas.get(s.id);
+    if (!c) continue;
+    const personas = new Set(c.ordenes.map(personaDeOrden));
+    if (personas.size > 1) continue;
+    const [clave] = personas;
+    if (!reclamos.has(clave)) reclamos.set(clave, []);
+    reclamos.get(clave)!.push({ socio: s, regla: c.regla });
+  }
+
+  /** La misma persona anotada en dos clubes: mismo correo de acceso, o mismo nombre. */
+  const esLaMisma = (a: Socio, b: Socio) => {
+    const ca = correoReal(a.onlineId);
+    const cb = correoReal(b.onlineId);
+    if (ca && cb) return ca === cb;
+    return palabras(a.nombre).join(" ") === palabras(b.nombre).join(" ");
+  };
+
+  /** Perdió contra una evidencia mejor: no es esa persona, y no hay nada que decidir. */
+  const perdedores = new Set<number>();
+  /** Empate entre personas distintas: no se toca y se avisa. */
+  const empatados = new Set<number>();
+  for (const lista of reclamos.values()) {
+    if (lista.length < 2) continue;
+    const mejorRango = Math.min(...lista.map((x) => rangoDe(x.regla)));
+    const ganadores = lista.filter((x) => rangoDe(x.regla) === mejorRango);
+    for (const x of lista) if (!ganadores.includes(x)) perdedores.add(x.socio.id);
+    if (ganadores.length < 2) continue;
+    // Varios ganadores: solo sirve si son la misma persona en varios clubes.
+    const todosIguales = ganadores.every((x) => esLaMisma(x.socio, ganadores[0].socio));
+    if (!todosIguales) for (const x of ganadores) empatados.add(x.socio.id);
   }
 
   for (const s of pendientes) {
@@ -237,8 +306,8 @@ export async function cruzarSociosConOrdenes(): Promise<ResultadoCruce> {
       resultado.dudosos.push({ socio: s.nombre, club: s.club, motivo: `coincide con ${personas.size} compradores distintos` });
       continue;
     }
-    const [clave] = personas;
-    if ((sociosPorPersona.get(clave) ?? 0) > 1) {
+    if (perdedores.has(s.id)) continue;
+    if (empatados.has(s.id)) {
       resultado.dudosos.push({ socio: s.nombre, club: s.club, motivo: "el mismo comprador coincide con más de un socio" });
       continue;
     }
@@ -259,6 +328,80 @@ export async function cruzarSociosConOrdenes(): Promise<ResultadoCruce> {
       },
     });
     resultado.completados.push({ socio: s.nombre, club: s.club, orden: orden.id, regla: c.regla });
+    Object.assign(s, {
+      email, telefono, ordenId: orden.id,
+      origenContacto: c.regla === "nombre" ? "orden-nombre" : "orden",
+    });
+  }
+
+  /*
+   * 2b) Dos socios con los datos de la misma compra.
+   *
+   * Una compra es de una sola persona. Si quedaron dos pegados a la misma
+   * —porque a uno lo respaldaba apenas el nombre y la revisión de arriba lo
+   * mira aislado, sin saber que había otro mejor— se lo queda el que tiene
+   * evidencia segura. Es el caso del padre y el hijo en el mismo club.
+   * Si ninguno destaca, no se elige: se avisa.
+   */
+  const porOrden = new Map<number, Socio[]>();
+  for (const s of socios) {
+    if (!s.ordenId || !s.origenContacto?.startsWith("orden")) continue;
+    if (!porOrden.has(s.ordenId)) porOrden.set(s.ordenId, []);
+    porOrden.get(s.ordenId)!.push(s);
+  }
+  for (const [ordenId, lista] of porOrden) {
+    // La misma persona en varios clubes comparte la compra con razón.
+    if (lista.length < 2 || lista.every((x) => esLaMisma(x, lista[0]))) continue;
+    const seguros = lista.filter((x) => x.origenContacto === "orden");
+    if (seguros.length === 1) {
+      for (const x of lista) if (x !== seguros[0]) await retirar(x, ordenPorId.get(ordenId));
+      continue;
+    }
+    for (const x of lista) {
+      resultado.dudosos.push({
+        socio: x.nombre, club: x.club,
+        motivo: `comparte los datos de la compra #${ordenId} con otro socio`,
+      });
+    }
+  }
+
+  /*
+   * 3) Un mismo teléfono o correo en más de un socio.
+   *
+   * Pasa de verdad: un matrimonio del mismo club que comparte el celular,
+   * o una persona que figura dos veces. No se toca nada, se avisa: elegir
+   * a cuál de los dos pertenece el dato es una decisión de quien conoce a
+   * la gente, no del programa.
+   */
+  const porDato = new Map<string, { tipo: "teléfono" | "correo"; dato: string; socios: Socio[] }>();
+  for (const s of socios) {
+    const claves: [("teléfono" | "correo"), string | null][] = [
+      ["teléfono", telefonoReal(s.telefono)],
+      ["correo", correoReal(s.email)],
+    ];
+    for (const [tipo, valor] of claves) {
+      if (!valor) continue;
+      const clave = `${tipo}:${valor}`;
+      if (!porDato.has(clave)) {
+        porDato.set(clave, { tipo, dato: tipo === "teléfono" ? (s.telefono ?? valor) : valor, socios: [] });
+      }
+      porDato.get(clave)!.socios.push(s);
+    }
+  }
+  for (const { tipo, dato, socios: repes } of porDato.values()) {
+    if (repes.length < 2) continue;
+    // Una misma persona anotada en varios clubes comparte sus datos con
+    // sigo misma: eso no es un dato repetido, es Rotary.
+    if (repes.every((x) => esLaMisma(x, repes[0]))) continue;
+    resultado.repetidos.push({
+      tipo,
+      dato,
+      socios: repes.map((s) => ({
+        socio: s.nombre,
+        club: s.club,
+        origen: s.origenContacto ?? "My Rotary",
+      })),
+    });
   }
 
   return resultado;
