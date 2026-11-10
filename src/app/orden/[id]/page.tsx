@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { campaniaDeSlug, POLIOPLUS } from "@/lib/campanias";
 import { mensajeDeCampania, rutaDeDifusion, textoDeDifusion } from "@/lib/compartir";
+import { BarraDeCampania } from "@/components/BarraDeCampania";
 import { DetalleOrden } from "./DetalleOrden";
 
 /*
@@ -30,12 +31,17 @@ export default async function OrderPage({ params }: PageProps<"/orden/[id]">) {
   const campania = (orden && campaniaDeSlug(orden.campania)) ?? POLIOPLUS;
 
   return (
-    <DetalleOrden
-      id={id}
-      digitos={campania.digitos}
-      rutaDifusion={rutaDeDifusion(campania)}
-      textoDifusion={textoDeDifusion(campania)}
-      mensajeParaCompartir={mensajeDeCampania(campania)}
-    />
+    <>
+      {/* Los logos de la campaña de esta orden: la barra comun no puede
+          saber cual es, porque el numero de orden no lo dice. */}
+      <BarraDeCampania campania={campania} />
+      <DetalleOrden
+        id={id}
+        digitos={campania.digitos}
+        rutaDifusion={rutaDeDifusion(campania)}
+        textoDifusion={textoDeDifusion(campania)}
+        mensajeParaCompartir={mensajeDeCampania(campania)}
+      />
+    </>
   );
 }
