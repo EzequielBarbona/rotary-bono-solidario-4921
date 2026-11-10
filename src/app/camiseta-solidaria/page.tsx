@@ -18,10 +18,28 @@ export const dynamic = "force-dynamic";
 
 const SLUG = "camiseta-solidaria";
 
+/*
+ * El titulo y la bajada van tambien en openGraph, y no solo en metadata:
+ * lo que WhatsApp pone arriba de la imagen sale de ahi. Sin esto hereda
+ * los del layout raiz —los del PolioPlus— y el link de la camiseta se
+ * comparte anunciando la campaña equivocada.
+ */
+const TITULO = "Dos instituciones. Una comunidad. Un mismo compromiso: ayudar.";
+const BAJADA =
+  "Bono solidario de Rotary Club de Neuquén y la Asociación Moiru. Sorteamos una camiseta autografiada del Club Cipolletti.";
+
 export const metadata = {
-  title: "Dos instituciones. Una comunidad. Un mismo compromiso: ayudar.",
-  description:
-    "Bono solidario de Rotary Club de Neuquén y la Asociación Moiru. Sorteamos una camiseta autografiada del Club Cipolletti.",
+  title: TITULO,
+  description: BAJADA,
+  openGraph: {
+    type: "website" as const,
+    locale: "es_AR",
+    url: "/camiseta-solidaria",
+    siteName: "Rotary Club de Neuquén · Asociación Moiru",
+    title: TITULO,
+    description: BAJADA,
+  },
+  twitter: { card: "summary_large_image" as const, title: TITULO, description: BAJADA },
 };
 
 /*

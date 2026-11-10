@@ -25,10 +25,27 @@ import {
 // sin numeros.
 export const dynamic = "force-dynamic";
 
+/*
+ * El titulo y la bajada tambien van en openGraph: sin eso, la tarjeta que
+ * arma WhatsApp hereda los del layout raiz, que son los del PolioPlus, y
+ * el link del sitio sale anunciando una campaña que ya cerro.
+ */
+const TITULO = "Bonos solidarios de Rotary";
+const BAJADA =
+  "Las campañas de bonos solidarios de Rotary: cuál está abierta, cuál ya cerró y a dónde va lo que se recauda.";
+
 export const metadata = {
-  title: "Bonos solidarios de Rotary",
-  description:
-    "Las campañas de bonos solidarios de Rotary: cuál está abierta, cuál ya cerró y a dónde va lo que se recauda.",
+  title: TITULO,
+  description: BAJADA,
+  openGraph: {
+    type: "website" as const,
+    locale: "es_AR",
+    url: "/",
+    siteName: TITULO,
+    title: TITULO,
+    description: BAJADA,
+  },
+  twitter: { card: "summary_large_image" as const, title: TITULO, description: BAJADA },
 };
 
 async function ventasPorCampania() {
