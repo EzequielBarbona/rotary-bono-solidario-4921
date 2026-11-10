@@ -100,6 +100,14 @@ export type Campania = {
   bajada: string;
   instituciones: Institucion[];
   premio: string;
+  /**
+   * La letra chica del premio: talle, fechas, condiciones.
+   *
+   * Va aparte y no pegada al premio porque el premio se dibuja en cuerpo
+   * grande en la tarjeta de WhatsApp, y ahi una sola linea de mas lo tira
+   * todo abajo. Esto se muestra chico, al lado o debajo.
+   */
+  premioDetalle?: string;
   precioArs: number;
   /** Que documento se le pide al comprador: ver DOCUMENTOS. */
   documento: TipoDocumento;
@@ -200,7 +208,8 @@ export const CAMPANIAS: Campania[] = [
       cbu: "19100933-55009306571814",
       alias: "rotarydeneuquen",
     },
-    premio: "Camiseta autografiada del Club Cipolletti",
+    premio: "Camiseta del Club Cipolletti firmada por los jugadores",
+    premioDetalle: "Talle S",
     precioArs: 2000,
     documento: "dni",
     pideClub: false,

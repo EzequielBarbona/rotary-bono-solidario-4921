@@ -149,6 +149,20 @@ export async function dibujarTarjetaDeCampania(
           {campania.premio}
         </div>
 
+        {/* La letra chica del premio, chica de verdad: en la miniatura del
+            chat el premio tiene que seguir siendo lo que se lee. */}
+        {campania.premioDetalle && (
+          <div
+            style={{
+              fontSize: k(42),
+              marginTop: k(14),
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            {campania.premioDetalle}
+          </div>
+        )}
+
         <div
           style={{
             display: "flex",

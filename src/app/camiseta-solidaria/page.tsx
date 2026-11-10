@@ -26,7 +26,7 @@ const SLUG = "camiseta-solidaria";
  */
 const TITULO = "Dos instituciones. Una comunidad. Un mismo compromiso: ayudar.";
 const BAJADA =
-  "Bono solidario de Rotary Club de Neuquén y la Asociación Moiru. Sorteamos una camiseta autografiada del Club Cipolletti.";
+  "Bono solidario de Rotary Club de Neuquén y la Asociación Moiru. Sorteamos una camiseta del Club Cipolletti talle S, firmada por los jugadores.";
 
 export const metadata = {
   title: TITULO,
@@ -49,7 +49,7 @@ export const metadata = {
  */
 const PARRAFOS = [
   "Rotary Club de Neuquén y Asociación Moiru unen esfuerzos en esta iniciativa solidaria con el objetivo de recaudar fondos para sostener y fortalecer las acciones sociales, comunitarias y solidarias que ambas instituciones vienen desarrollando en nuestra comunidad.",
-  "En esta oportunidad, ponemos a disposición una camiseta autografiada del Club Cipolletti, un premio que representa también el espíritu de encuentro, identidad y compromiso con nuestra región.",
+  "En esta oportunidad, ponemos a disposición una camiseta del Club Cipolletti talle S, firmada por los jugadores, un premio que representa también el espíritu de encuentro, identidad y compromiso con nuestra región.",
   "Cada número adquirido representa mucho más que una posibilidad de ganar: es una contribución concreta para acompañar a quienes más lo necesitan, impulsar proyectos comunitarios y continuar generando oportunidades para mejorar la calidad de vida de nuestros vecinos.",
 ];
 
@@ -108,6 +108,13 @@ export default async function CamisetaSolidaria() {
 
           <p className="bg-white/15 rounded-2xl px-5 py-3 text-base sm:text-xl font-extrabold text-balance">
             {formatArs(campania.precioArs)} por número · {campania.premio}
+            {campania.premioDetalle && (
+              // El talle va en el mismo recuadro pero mas chico: es un
+              // dato que importa y no tiene que competir con el premio.
+              <span className="block font-semibold text-sm sm:text-base opacity-90">
+                {campania.premioDetalle}
+              </span>
+            )}
           </p>
 
           <ContadorBonos
@@ -156,7 +163,10 @@ export default async function CamisetaSolidaria() {
 
         <dl className="grid gap-3 sm:grid-cols-3">
           {[
-            ["El premio", campania.premio],
+            [
+              "El premio",
+              [campania.premio, campania.premioDetalle].filter(Boolean).join(" · "),
+            ],
             ["Los números", `${campania.totalNumeros.toLocaleString("es-AR")}, del ${rangoDe(campania)}`],
             ["Cada número", formatArs(campania.precioArs)],
           ].map(([titulo, valor]) => (

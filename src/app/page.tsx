@@ -143,7 +143,12 @@ function TarjetaCampania({
       <dl className="relative grid grid-cols-2 gap-3 text-sm">
         <div className="bg-white/15 rounded-xl px-3 py-2">
           <dt className="opacity-80 text-xs uppercase tracking-wide">Premio</dt>
-          <dd className="font-semibold leading-snug">{campania.premio}</dd>
+          <dd className="font-semibold leading-snug">
+            {campania.premio}
+            {campania.premioDetalle && (
+              <span className="block font-normal opacity-80">{campania.premioDetalle}</span>
+            )}
+          </dd>
         </div>
         <div className="bg-white/15 rounded-xl px-3 py-2">
           <dt className="opacity-80 text-xs uppercase tracking-wide">Números</dt>

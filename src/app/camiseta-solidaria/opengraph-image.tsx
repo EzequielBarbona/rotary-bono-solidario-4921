@@ -12,7 +12,8 @@ import { campaniaDeSlug, POLIOPLUS } from "@/lib/campanias";
  * empieza a circular no se corrige mas.
  */
 
-export const alt = "Bono solidario de Rotary Club de Neuquén y Asociación Moiru";
+export const alt =
+  "Bono solidario de Rotary Club de Neuquén y Asociación Moiru: camiseta del Club Cipolletti talle S firmada por los jugadores";
 export const size = { width: 1200, height: 1200 };
 export const contentType = "image/png";
 

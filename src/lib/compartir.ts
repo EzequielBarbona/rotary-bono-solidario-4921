@@ -24,7 +24,7 @@ export function mensajeDeCampania(campania: Campania): string {
   return [
     "¿Ya tenés tu número? 🎟️",
     `Bono solidario de ${quienes}.`,
-    `Se sortea: ${campania.premio}.`,
+    `Se sortea: ${campania.premio}${campania.premioDetalle ? ` (${campania.premioDetalle.toLowerCase()})` : ""}.`,
     `${formatArs(campania.precioArs)} por número. Lo que se recauda sostiene las acciones solidarias de las dos instituciones en nuestra comunidad.`,
     campania.sorteo,
     "Entrá y comprá el tuyo 👇",
