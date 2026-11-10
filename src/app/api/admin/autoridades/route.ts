@@ -1,4 +1,4 @@
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { sesionMaestraDePedido } from "@/lib/admin-auth";
 import { clubesParaDifusion } from "@/lib/difusion";
 import { pdfDeAutoridades } from "@/lib/pdf-autoridades";
 
@@ -14,7 +14,8 @@ import { pdfDeAutoridades } from "@/lib/pdf-autoridades";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  if (!(await isAdminAuthorized(request))) {
+  // Es del distrito, no de una campaña: solo con la clave maestra.
+  if (!(await sesionMaestraDePedido(request))) {
     return new Response("No autorizado.", { status: 401 });
   }
 

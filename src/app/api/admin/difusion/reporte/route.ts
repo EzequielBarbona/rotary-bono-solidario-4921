@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { sesionMaestraDePedido } from "@/lib/admin-auth";
 import { clubesParaDifusion } from "@/lib/difusion";
 import { toWhatsAppNumber } from "@/lib/phone";
 
@@ -33,7 +33,8 @@ function fechaArt(d: Date) {
 }
 
 export async function GET(request: Request) {
-  if (!(await isAdminAuthorized(request))) {
+  // Es del distrito, no de una campaña: solo con la clave maestra.
+  if (!(await sesionMaestraDePedido(request))) {
     return new Response("No autorizado.", { status: 401 });
   }
 

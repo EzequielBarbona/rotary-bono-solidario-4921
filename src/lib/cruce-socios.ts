@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { POLIOPLUS } from "@/lib/campanias";
 import { SOCIO_ACTUAL } from "@/lib/socios-actuales";
 
 /*
@@ -172,6 +173,9 @@ export async function cruzarSociosConOrdenes(): Promise<ResultadoCruce> {
   // Select explícito: sin él Prisma trae también la foto del comprobante
   // de cada orden, que es justo lo que agotó la base en septiembre.
   const ordenes: Orden[] = await prisma.order.findMany({
+    // Solo las del PolioPlus: el cruce con el padron se apoya en el club
+    // que eligio el comprador, y ese campo solo existe en esa campaña.
+    where: { campania: POLIOPLUS.slug },
     select: { id: true, buyerName: true, buyerClub: true, buyerEmail: true, buyerPhone: true },
     orderBy: { createdAt: "desc" },
   });

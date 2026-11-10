@@ -1,16 +1,22 @@
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { esMaestra, sesionActiva } from "@/lib/admin-auth";
 import { raffleConfig } from "@/lib/config";
 import { RUTA_DISTRITO } from "@/lib/clubs";
 import { clubesParaDifusion } from "@/lib/difusion";
 import { AdminLogin } from "@/components/admin/AdminLogin";
+import { SoloDistrito } from "@/components/admin/SoloDistrito";
 import { PanelDifusion } from "@/components/admin/PanelDifusion";
 
 // Las ventas y las marcas de avisado se mueven todo el tiempo.
 export const dynamic = "force-dynamic";
 
 export default async function DifusionPage() {
-  if (!(await isAdminSessionActive())) {
+  const sesion = await sesionActiva();
+  if (!sesion) {
     return <AdminLogin />;
+  }
+  // Es del distrito y de ninguna campaña: con una clave de campaña, no.
+  if (!esMaestra(sesion)) {
+    return <SoloDistrito />;
   }
 
   const clubes = await clubesParaDifusion();

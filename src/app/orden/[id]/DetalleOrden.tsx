@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatArs } from "@/lib/format";
-import { RUTA_ULTIMOS, rutaDeClub } from "@/lib/clubs";
+import { rutaDeClub } from "@/lib/clubs";
 import { ShareWhatsAppButton } from "@/components/ShareWhatsAppButton";
 
 type OrderStatus = "PENDIENTE" | "PAGADO" | "EXPIRADO" | "CANCELADO";
@@ -19,9 +19,18 @@ type Order = {
 
 export function DetalleOrden({
   id,
+  digitos,
+  rutaDifusion,
+  textoDifusion,
   mensajeParaCompartir,
 }: {
   id: string;
+  /** Con cuantos ceros se escribe un numero de esta campaña: "0001" o "000". */
+  digitos: number;
+  /** El link que se comparte cuando el comprador no llego por un club. */
+  rutaDifusion: string;
+  /** Por que vale la pena compartirlo, en una linea, en los terminos de su campaña. */
+  textoDifusion: string;
   /**
    * El texto del boton de WhatsApp, armado en el servidor: sale del precio
    * y la fecha del sorteo, que son variables de entorno que el navegador
@@ -76,7 +85,7 @@ export function DetalleOrden({
   }
 
   const numbersText = order.tickets
-    .map((t) => t.number.toString().padStart(4, "0"))
+    .map((t) => t.number.toString().padStart(digitos, "0"))
     .join(", ");
 
   const rutaClub = rutaDeClub(order.buyerClub);
@@ -160,14 +169,11 @@ export function DetalleOrden({
               </p>
             </div>
           ) : (
-            <p className="text-base text-rotary-ink/70 max-w-md">
-              Compartilo con tu gente: cada bono que se venda acerca el
-              objetivo de vacunar chicos contra la polio.
-            </p>
+            <p className="text-base text-rotary-ink/70 max-w-md">{textoDifusion}</p>
           )}
 
           <ShareWhatsAppButton
-            ruta={rutaClub ?? RUTA_ULTIMOS}
+            ruta={rutaClub ?? rutaDifusion}
             mensaje={mensajeParaCompartir}
           />
         </div>

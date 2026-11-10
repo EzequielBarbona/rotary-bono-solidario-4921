@@ -1,20 +1,24 @@
-import { raffleConfig } from "@/lib/config";
+import type { Campania } from "@/lib/campanias";
 
 /*
- * Cuando cierra la venta, en un solo lugar.
+ * Cuando cierra la venta de una campaña, en un solo lugar.
  *
  * La hora que muestra la cuenta regresiva, la que apaga el boton de
  * comprar y la que rechaza una reserva tienen que ser la misma: si cada
  * pantalla la calculara por su cuenta, alguien podria ver el boton
  * prendido y comerse un error al apretar.
+ *
+ * Desde que el sitio tiene mas de una campaña, todo esto recibe la
+ * campaña: el PolioPlus cerro el 24/10 y la camiseta sigue abierta, asi
+ * que una hora de cierre global cerraria la venta que esta corriendo.
  */
 
-/** El instante del cierre, o null si no hay fecha cargada. */
-export const CIERRE = (() => {
-  if (!raffleConfig.salesCloseAt) return null;
-  const fecha = new Date(raffleConfig.salesCloseAt);
+/** El instante del cierre de esa campaña, o null si no tiene fecha cargada. */
+export function cierreDe(campania: Campania): Date | null {
+  if (!campania.cierreAt) return null;
+  const fecha = new Date(campania.cierreAt);
   return Number.isNaN(fecha.getTime()) ? null : fecha;
-})();
+}
 
 /**
  * Media hora de gracia despues del cierre.
@@ -32,17 +36,24 @@ export const GRACIA_MS = 30 * 60 * 1000;
 
 export type EstadoDeVenta = "abierta" | "gracia" | "cerrada";
 
-export function estadoDeVenta(ahora: number = Date.now()): EstadoDeVenta {
-  if (!CIERRE) return "abierta";
-  const cierre = CIERRE.getTime();
-  if (ahora < cierre) return "abierta";
-  if (ahora < cierre + GRACIA_MS) return "gracia";
+export function estadoDeVenta(
+  campania: Campania,
+  ahora: number = Date.now()
+): EstadoDeVenta {
+  // Una campaña sin publicar no vende, aunque no tenga fecha de cierre:
+  // es el interruptor con el que se la anuncia antes de abrirla.
+  if (!campania.publicada) return "cerrada";
+  const cierre = cierreDe(campania);
+  if (!cierre) return "abierta";
+  const hora = cierre.getTime();
+  if (ahora < hora) return "abierta";
+  if (ahora < hora + GRACIA_MS) return "gracia";
   return "cerrada";
 }
 
 /** La venta ya no se ofrece: el boton de comprar se apaga. */
-export function ventaCerrada(ahora?: number) {
-  return estadoDeVenta(ahora) !== "abierta";
+export function ventaCerrada(campania: Campania, ahora?: number) {
+  return estadoDeVenta(campania, ahora) !== "abierta";
 }
 
 const plural = (n: number, singular: string, plural: string) =>
@@ -60,9 +71,13 @@ const plural = (n: number, singular: string, plural: string) =>
  * mando— es preferible que prometa menos tiempo del que hay y no mas.
  * Al lado va siempre la fecha de cierre, que no se vence nunca.
  */
-export function tiempoQueFalta(ahora: number = Date.now()): string | null {
-  if (!CIERRE) return null;
-  const restante = CIERRE.getTime() - ahora;
+export function tiempoQueFalta(
+  campania: Campania,
+  ahora: number = Date.now()
+): string | null {
+  const cierre = cierreDe(campania);
+  if (!cierre) return null;
+  const restante = cierre.getTime() - ahora;
   if (restante <= 0) return null;
 
   const minutos = Math.floor(restante / 60_000);

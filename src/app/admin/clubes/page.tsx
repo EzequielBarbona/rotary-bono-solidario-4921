@@ -1,17 +1,23 @@
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { esMaestra, sesionActiva } from "@/lib/admin-auth";
 import { formatArs } from "@/lib/format";
 import { DISTRICT_CLUBS } from "@/lib/clubs";
 import { esGrupoAgrupado, rankingPorClub } from "@/lib/ranking";
 import { getFlag, RANKING_PUBLICO } from "@/lib/settings";
 import { AdminLogin } from "@/components/admin/AdminLogin";
+import { SoloDistrito } from "@/components/admin/SoloDistrito";
 import { PublicarRankingToggle } from "@/components/admin/PublicarRankingToggle";
 
 // Es un ranking en vivo: nunca cacheado.
 export const dynamic = "force-dynamic";
 
 export default async function VentasPorClubPage() {
-  if (!(await isAdminSessionActive())) {
+  const sesion = await sesionActiva();
+  if (!sesion) {
     return <AdminLogin />;
+  }
+  // Es del distrito y de ninguna campaña: con una clave de campaña, no.
+  if (!esMaestra(sesion)) {
+    return <SoloDistrito />;
   }
 
   const [filas, publicado] = await Promise.all([

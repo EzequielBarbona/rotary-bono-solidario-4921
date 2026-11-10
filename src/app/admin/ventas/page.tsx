@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { sesionActiva } from "@/lib/admin-auth";
 import { formatArs } from "@/lib/format";
 import { ART_WEEK_MS, formatArtDayMonth, startOfArtWeek } from "@/lib/dates";
-import { raffleConfig } from "@/lib/config";
+import { campaniaDelPanel } from "@/lib/panel-sesion";
 import { proyectarVentas } from "@/lib/proyeccion";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { ProyeccionVentas } from "@/components/admin/ProyeccionVentas";
@@ -18,26 +18,37 @@ type SemanaFila = {
   acumulado: number;
 };
 
-export default async function VentasPorSemanaPage() {
-  if (!(await isAdminSessionActive())) {
+export default async function VentasPorSemanaPage({
+  searchParams,
+}: PageProps<"/admin/ventas">) {
+  const sesion = await sesionActiva();
+  if (!sesion) {
     return <AdminLogin />;
   }
+
+  // La misma campaña que las ordenes del panel, y por el mismo camino: la
+  // clave de una campaña no puede ver las semanas de la otra.
+  const { campania } = campaniaDelPanel(sesion, (await searchParams).campania);
 
   // Mismo criterio que los totales del panel: cuenta lo reservado (aunque
   // un admin todavia no lo haya confirmado), porque lo que se cruza contra
   // el resumen bancario es la plata que entro, no el clic de confirmacion.
   const ordenes = await prisma.order.findMany({
-    where: { status: { in: ["PENDIENTE", "PAGADO"] } },
+    where: { campania: campania.slug, status: { in: ["PENDIENTE", "PAGADO"] } },
     select: { createdAt: true, totalAmount: true, ticketCount: true, status: true },
     orderBy: { createdAt: "asc" },
   });
 
   // Las mismas ordenes que alimentan la tabla: la proyeccion no puede
   // salir de un conteo distinto del que se ve abajo.
+  // La fecha a la que se proyecta es la del cierre de la venta de esa
+  // campaña. Vacia mientras no haya fecha: la proyeccion muestra el ritmo
+  // igual, pero sin prometer un total para un dia que no existe.
+  const fechaCierre = campania.cierreAt?.slice(0, 10) ?? "";
   const proyeccion = proyectarVentas({
     ventas: ordenes,
-    totalBonos: raffleConfig.totalTickets,
-    drawDate: raffleConfig.drawDate,
+    totalBonos: campania.totalNumeros,
+    drawDate: fechaCierre,
   });
 
   const semanas: SemanaFila[] = [];
@@ -76,11 +87,14 @@ export default async function VentasPorSemanaPage() {
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-extrabold text-rotary-ink">Ventas por semana</h1>
+        <h1 className="text-2xl font-extrabold text-rotary-ink">
+          Ventas por semana · {campania.nombreCorto}
+        </h1>
         {/* Link comun y no fetch: la descarga la maneja el navegador y
-            viaja con la cookie de admin. */}
+            viaja con la cookie de admin. La campaña va en la URL para que
+            la planilla sea la de la campaña que se esta mirando. */}
         <a
-          href="/api/admin/ventas/export"
+          href={`/api/admin/ventas/export?campania=${campania.slug}`}
           className="inline-flex items-center gap-2 bg-rotary-azure text-white text-sm font-bold px-4 py-2 rounded-full hover:bg-rotary-azure-dark transition-colors"
         >
           Descargar en Excel
@@ -89,8 +103,8 @@ export default async function VentasPorSemanaPage() {
 
       <ProyeccionVentas
         proyeccion={proyeccion}
-        totalBonos={raffleConfig.totalTickets}
-        drawDate={raffleConfig.drawDate}
+        totalBonos={campania.totalNumeros}
+        drawDate={fechaCierre}
       />
 
       <p className="text-sm text-rotary-ink/70">

@@ -1,4 +1,5 @@
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { sesionActiva } from "@/lib/admin-auth";
+import { campaniaDeSlug } from "@/lib/campanias";
 import { NavAdmin } from "@/components/admin/NavAdmin";
 
 /**
@@ -13,11 +14,12 @@ import { NavAdmin } from "@/components/admin/NavAdmin";
  * es una invitacion a hacer clic para nada.
  */
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
-  const autorizado = await isAdminSessionActive();
+  const sesion = await sesionActiva();
+  const campania = sesion?.campania ? campaniaDeSlug(sesion.campania) : null;
 
   return (
     <>
-      {autorizado && <NavAdmin />}
+      {sesion && <NavAdmin campania={campania?.nombreCorto ?? null} />}
       {children}
     </>
   );

@@ -2,7 +2,8 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ECUACION, MARCA } from "@/lib/copy";
-import { CIERRE, tiempoQueFalta, ventaCerrada } from "@/lib/cierre";
+import { cierreDe, tiempoQueFalta, ventaCerrada } from "@/lib/cierre";
+import { POLIOPLUS } from "@/lib/campanias";
 import { formatArtDayTime } from "@/lib/dates";
 
 /*
@@ -41,8 +42,10 @@ export function dibujarTarjeta({ ancho, alto }: { ancho: number; alto: number })
   // Redondear: Satori acepta decimales pero el texto queda sucio.
   const k = (n: number) => Math.round((n * ancho) / LADO_BASE);
 
-  const cerrada = ventaCerrada();
-  const falta = cerrada ? null : tiempoQueFalta();
+  // La tarjeta es la del volante del PolioPlus, no la de cualquier campaña.
+  const CIERRE = cierreDe(POLIOPLUS);
+  const cerrada = ventaCerrada(POLIOPLUS);
+  const falta = cerrada ? null : tiempoQueFalta(POLIOPLUS);
 
   return new ImageResponse(
     (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ventaCerrada } from "@/lib/cierre";
+import { rutaDeCompra, type Campania } from "@/lib/campanias";
 
 /*
  * El boton de comprar, que despues del cierre deja de serlo.
@@ -23,21 +24,23 @@ const ESTILOS = {
 } as const;
 
 export function BotonComprar({
+  campania,
   tono,
   className = "",
 }: {
+  campania: Campania;
   tono: keyof typeof ESTILOS;
   className?: string;
 }) {
   const base = `font-bold text-lg px-8 sm:px-10 py-4 rounded-full whitespace-nowrap ${className}`;
   const estilo = ESTILOS[tono];
 
-  if (ventaCerrada()) {
+  if (ventaCerrada(campania)) {
     return <span className={`${base} ${estilo.cerrado}`}>La venta cerró</span>;
   }
 
   return (
-    <Link href="/comprar/cantidad" className={`${base} ${estilo.abierto}`}>
+    <Link href={rutaDeCompra(campania)} className={`${base} ${estilo.abierto}`}>
       Comprar bono solidario
     </Link>
   );

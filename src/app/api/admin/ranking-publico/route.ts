@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { sesionMaestraDePedido } from "@/lib/admin-auth";
 import { RANKING_PUBLICO, setFlag } from "@/lib/settings";
 
 /**
@@ -10,7 +10,8 @@ import { RANKING_PUBLICO, setFlag } from "@/lib/settings";
  * empuja a los clubes a vender.
  */
 export async function POST(request: Request) {
-  if (!(await isAdminAuthorized(request))) {
+  // Es del distrito, no de una campaña: solo con la clave maestra.
+  if (!(await sesionMaestraDePedido(request))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 

@@ -21,18 +21,29 @@ enum OrderStatus {
 
 model Ticket {
   id         Int          @id @default(autoincrement())
-  number     Int          @unique
+  /// A que campaña pertenece el numero, por slug (ver src/lib/campanias.ts).
+  ///
+  /// El numero solo es unico dentro de su campaña: el 7 del PolioPlus y el
+  /// 007 de la camiseta son dos bonos distintos, de dos sorteos distintos.
+  /// El default existe para las filas que ya estaban cuando se agrego la
+  /// columna, que son todas del PolioPlus.
+  campania   String       @default("polioplus")
+  number     Int
   status     TicketStatus @default(DISPONIBLE)
   orderId    Int?
   order      Order?       @relation(fields: [orderId], references: [id])
   reservedAt DateTime?
 
-  @@index([status])
+  @@unique([campania, number])
+  @@index([campania, status])
   @@index([orderId])
 }
 
 model Order {
   id               Int         @id @default(autoincrement())
+  /// La campaña en la que se compro, por slug. Con el default, las ordenes
+  /// anteriores a la segunda campaña quedan donde corresponde: el PolioPlus.
+  campania         String      @default("polioplus")
   buyerName        String
   buyerEmail       String
   buyerPhone       String
@@ -58,6 +69,7 @@ model Order {
   confirmationSentAt DateTime?
   tickets          Ticket[]
 
+  @@index([campania, status])
   @@index([receiptHash])
 }
 

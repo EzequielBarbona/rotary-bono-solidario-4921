@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { sesionMaestraDePedido } from "@/lib/admin-auth";
 import { cruzarSociosConOrdenes } from "@/lib/cruce-socios";
 
 /**
@@ -13,7 +13,8 @@ import { cruzarSociosConOrdenes } from "@/lib/cruce-socios";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  if (!(await isAdminAuthorized(request))) {
+  // Es del distrito, no de una campaña: solo con la clave maestra.
+  if (!(await sesionMaestraDePedido(request))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
   const resultado = await cruzarSociosConOrdenes();

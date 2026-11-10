@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { sesionMaestraDePedido } from "@/lib/admin-auth";
 
 /**
  * Marca (o desmarca) que ya se le mando el material de difusion a una
@@ -12,7 +12,8 @@ import { isAdminAuthorized } from "@/lib/admin-auth";
  * presidente ni se saltee a nadie.
  */
 export async function POST(request: Request) {
-  if (!(await isAdminAuthorized(request))) {
+  // Es del distrito, no de una campaña: solo con la clave maestra.
+  if (!(await sesionMaestraDePedido(request))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 

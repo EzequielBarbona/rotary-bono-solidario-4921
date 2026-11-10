@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { POLIOPLUS } from "@/lib/campanias";
 import { GRUPO_AMIGOS, GRUPO_OTROS, grupoDeRanking } from "@/lib/clubs";
 
 export type FilaClub = {
@@ -26,7 +27,9 @@ export const esGrupoAgrupado = (club: string) =>
  */
 export async function rankingPorClub(): Promise<FilaClub[]> {
   const ordenes = await prisma.order.findMany({
-    where: { status: { in: ["PENDIENTE", "PAGADO"] } },
+    // La copa entre clubes es de la campaña del distrito: la venta directa
+    // de otras campañas no le suma a ningun club.
+    where: { campania: POLIOPLUS.slug, status: { in: ["PENDIENTE", "PAGADO"] } },
     select: { buyerClub: true, ticketCount: true, totalAmount: true, status: true },
   });
 

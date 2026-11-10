@@ -16,13 +16,26 @@ import { LogoutButton } from "@/components/admin/LogoutButton";
  * cualquier seccion desde cualquier lugar de cualquier pagina.
  */
 const SECCIONES = [
-  { href: "/admin", texto: "Órdenes" },
-  { href: "/admin/ventas", texto: "Ventas por semana" },
-  { href: "/admin/clubes", texto: "Ventas por club" },
-  { href: "/admin/difusion", texto: "Difusión" },
+  { href: "/admin", texto: "Órdenes", soloDistrito: false },
+  { href: "/admin/ventas", texto: "Ventas por semana", soloDistrito: false },
+  { href: "/admin/clubes", texto: "Ventas por club", soloDistrito: true },
+  { href: "/admin/difusion", texto: "Difusión", soloDistrito: true },
 ];
 
-export function NavAdmin() {
+export function NavAdmin({
+  campania,
+}: {
+  /**
+   * El nombre de la campaña cuando se entro con su clave, o null con la
+   * clave maestra.
+   *
+   * Con una clave de campaña se esconden las secciones del distrito —el
+   * padron de socios, el ranking entre clubes, la difusion— porque no son
+   * de esa campaña, y se deja el nombre a la vista para que nadie dude de
+   * que compras esta mirando.
+   */
+  campania: string | null;
+}) {
   const pathname = usePathname();
   const pestanas = useRef<HTMLDivElement>(null);
 
@@ -45,7 +58,7 @@ export function NavAdmin() {
         {/* Con cuatro secciones no entra en un celular angosto: scrollea
             en horizontal en vez de apilarse o cortar los nombres. */}
         <div ref={pestanas} className="flex items-center gap-1 overflow-x-auto">
-          {SECCIONES.map((seccion) => {
+          {SECCIONES.filter((s) => !(s.soloDistrito && campania)).map((seccion) => {
             const activa = pathname === seccion.href;
             return (
               <Link
@@ -65,6 +78,11 @@ export function NavAdmin() {
         </div>
 
         <div className="flex items-center gap-4 shrink-0">
+          {campania && (
+            <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wide bg-rotary-azure/10 text-rotary-azure-dark rounded-full px-3 py-1">
+              {campania}
+            </span>
+          )}
           <Link
             href="/"
             className="text-sm text-rotary-azure hover:underline whitespace-nowrap"

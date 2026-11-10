@@ -9,7 +9,20 @@ type Ticket = { number: number; status: TicketStatus };
 
 const POLL_INTERVAL_MS = 20_000;
 
-export function TicketGrid({ totalTickets }: { totalTickets: number }) {
+export function TicketGrid({
+  campania,
+  totalTickets,
+  primerNumero,
+  digitos,
+}: {
+  /** Slug de la campaña: la grilla que se pide y a donde sigue el paso. */
+  campania: string;
+  totalTickets: number;
+  /** Con que numero empieza: 1 en el PolioPlus, 0 en la camiseta. */
+  primerNumero: number;
+  /** Con cuantos ceros se escribe: "0001" o "000". */
+  digitos: number;
+}) {
   const router = useRouter();
   const { quantity, selectedNumbers: savedSelection, setSelectedNumbers } = usePurchase();
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
@@ -18,12 +31,14 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
 
   useEffect(() => {
     if (!quantity) {
-      router.replace("/comprar/cantidad");
+      router.replace(`/comprar/${campania}/cantidad`);
     }
-  }, [quantity, router]);
+  }, [quantity, campania, router]);
 
   const loadTickets = useCallback(async () => {
-    const res = await fetch("/api/tickets", { cache: "no-store" });
+    const res = await fetch(`/api/tickets?campania=${encodeURIComponent(campania)}`, {
+      cache: "no-store",
+    });
     const data = await res.json();
     const fresh: Ticket[] = data.tickets;
     setTickets(fresh);
@@ -38,7 +53,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
       }
       return next;
     });
-  }, []);
+  }, [campania]);
 
   useEffect(() => {
     // loadTickets is async; its setState calls happen after the awaited
@@ -72,7 +87,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
 
   function handleContinue() {
     setSelectedNumbers([...selected]);
-    router.push("/comprar/datos");
+    router.push(`/comprar/${campania}/datos`);
   }
 
   function pickRandom() {
@@ -120,7 +135,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
       </button>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(3.2rem,1fr))] gap-1.5">
-        {Array.from({ length: totalTickets }, (_, i) => i + 1).map((n) => {
+        {Array.from({ length: totalTickets }, (_, i) => i + primerNumero).map((n) => {
           const status = statusByNumber.get(n) ?? "DISPONIBLE";
           const isSelected = selected.has(n);
           const base = "text-xs font-mono rounded py-2 transition-colors";
@@ -142,7 +157,7 @@ export function TicketGrid({ totalTickets }: { totalTickets: number }) {
               onClick={() => toggleNumber(n)}
               className={cls}
             >
-              {n.toString().padStart(4, "0")}
+              {n.toString().padStart(digitos, "0")}
             </button>
           );
         })}

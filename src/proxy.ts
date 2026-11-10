@@ -10,7 +10,7 @@ import {
 } from "@/lib/clubs";
 
 /*
- * Entradas oficiales del distrito. "/" es la raiz de siempre y "/sumate"
+ * Entradas oficiales del distrito a la campaña del PolioPlus. "/sumate"
  * es un alias para difundir: se lee como una invitacion y, al ser una URL
  * que nadie compartio nunca, genera la vista previa de WhatsApp desde
  * cero en cualquier telefono, incluidos los que tienen guardada una
@@ -21,7 +21,20 @@ import {
  * Las dos limpian el club: quien entra por el canal del distrito no lo
  * invito ningun club.
  */
-const ENTRADAS_DISTRITO = new Set(["/", RUTA_DISTRITO, RUTA_ULTIMOS]);
+const ENTRADAS_DISTRITO = new Set([RUTA_DISTRITO, RUTA_ULTIMOS]);
+
+/**
+ * La pagina de la campaña del PolioPlus.
+ *
+ * La raiz dejo de ser esa campaña el dia que aparecio la segunda: ahora
+ * es la portada que las lista. Los links que ya circularon —el QR del
+ * volante impreso, los /c/<club> de cada club— tienen que seguir cayendo
+ * en la campaña, no en la portada.
+ */
+const PAGINA_POLIOPLUS = "/polioplus";
+
+/** Los pasos de la compra cuando la ruta todavia no llevaba la campaña. */
+const PASOS_VIEJOS = new Set(["cantidad", "numeros", "datos"]);
 
 const OPCIONES_COOKIE = {
   path: "/",
@@ -64,13 +77,23 @@ function entraDesdeAfuera(request: NextRequest) {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  /*
+   * Los pasos de la compra vivian en /comprar/cantidad, sin campaña en la
+   * ruta. Esas URLs quedaron en pestañas abiertas y en el historial de
+   * quien compro el bono del PolioPlus: se las manda a su campaña, que es
+   * la unica que podian significar.
+   */
+  const pasoViejo = pathname.slice("/comprar/".length);
+  if (PASOS_VIEJOS.has(pasoViejo)) {
+    return NextResponse.redirect(
+      new URL(`/comprar/polioplus/${pasoViejo}`, request.url)
+    );
+  }
+
   if (ENTRADAS_DISTRITO.has(pathname)) {
     // Ni "/sumate" ni "/ultimos" tienen pagina propia: muestran la home
-    // sin cambiar la URL que la persona tiene a la vista.
-    const respuesta =
-      pathname === "/"
-        ? NextResponse.next()
-        : NextResponse.rewrite(new URL("/", request.url));
+    // de la campaña sin cambiar la URL que la persona tiene a la vista.
+    const respuesta = NextResponse.rewrite(new URL(PAGINA_POLIOPLUS, request.url));
 
     // Se limpia solo si la visita viene de afuera. Desde el paso 1 de la
     // compra el boton "‹ Volver" apunta a la home, y borrar en toda
@@ -84,7 +107,7 @@ export function proxy(request: NextRequest) {
 
   const slug = pathname.split("/")[2] ?? "";
   const club = clubDeSlug(slug);
-  const respuesta = NextResponse.rewrite(new URL("/", request.url));
+  const respuesta = NextResponse.rewrite(new URL(PAGINA_POLIOPLUS, request.url));
 
   if (club) {
     // Se guarda el slug canonico y no lo que vino en la URL: asi
@@ -98,5 +121,12 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/sumate", "/ultimos", "/c/:slug"],
+  matcher: [
+    "/sumate",
+    "/ultimos",
+    "/c/:slug",
+    "/comprar/cantidad",
+    "/comprar/numeros",
+    "/comprar/datos",
+  ],
 };

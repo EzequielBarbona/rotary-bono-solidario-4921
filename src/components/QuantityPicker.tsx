@@ -11,11 +11,23 @@ const QUICK_OPTIONS = [1, 2, 5, 10, 20];
 const TARGET_KIDS_GOAL = 100;
 
 export function QuantityPicker({
+  campania,
   ticketPriceArs,
   maxPerOrder,
+  mostrarImpactoPolio,
 }: {
+  /** Slug de la campaña: define a donde sigue el paso y que se muestra. */
+  campania: string;
   ticketPriceArs: number;
   maxPerOrder: number;
+  /**
+   * Si se muestra la cuenta de chicos vacunados.
+   *
+   * Es del PolioPlus, donde la equivalencia la publica Rotary. En la
+   * camiseta no hay nada parecido que convertir, y una cifra inventada
+   * seria peor que no poner ninguna.
+   */
+  mostrarImpactoPolio: boolean;
 }) {
   const router = useRouter();
   const { quantity, setQuantity } = usePurchase();
@@ -27,10 +39,10 @@ export function QuantityPicker({
 
   function handleNext() {
     setQuantity(value);
-    router.push("/comprar/numeros");
+    router.push(`/comprar/${campania}/numeros`);
   }
 
-  const kids = childrenProtected(value * ticketPriceArs);
+  const kids = mostrarImpactoPolio ? childrenProtected(value * ticketPriceArs) : 0;
   const pictogram = pictogramScale(kids, kids);
 
   return (
@@ -77,13 +89,15 @@ export function QuantityPicker({
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setValue(clamp(ticketsForChildren(TARGET_KIDS_GOAL, ticketPriceArs)))}
-        className="text-sm font-semibold text-white bg-rotary-azure rounded-full px-4 py-2 hover:bg-rotary-azure-dark transition-colors"
-      >
-        Quiero ayudar a vacunar {TARGET_KIDS_GOAL} chicos
-      </button>
+      {mostrarImpactoPolio && (
+        <button
+          type="button"
+          onClick={() => setValue(clamp(ticketsForChildren(TARGET_KIDS_GOAL, ticketPriceArs)))}
+          className="text-sm font-semibold text-white bg-rotary-azure rounded-full px-4 py-2 hover:bg-rotary-azure-dark transition-colors"
+        >
+          Quiero ayudar a vacunar {TARGET_KIDS_GOAL} chicos
+        </button>
+      )}
 
       <p className="text-lg text-rotary-ink">
         Total: <span className="font-extrabold">{formatArs(value * ticketPriceArs)}</span>

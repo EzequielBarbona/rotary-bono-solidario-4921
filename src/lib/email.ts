@@ -1,8 +1,10 @@
 import { Resend } from "resend";
-import { raffleConfig } from "@/lib/config";
-import { formatDrawDate } from "@/lib/format";
+import type { Campania } from "@/lib/campanias";
+import { textosDePanel } from "@/lib/panel-campania";
 
 type ConfirmationEmailInput = {
+  /** La campaña de la orden: pone el asunto, el sorteo y el cierre del mail. */
+  campania: Campania;
   buyerName: string;
   buyerEmail: string;
   ticketNumbers: number[];
@@ -11,22 +13,27 @@ type ConfirmationEmailInput = {
 };
 
 export async function sendConfirmationEmail(input: ConfirmationEmailInput) {
-  const { buyerName, buyerEmail, ticketNumbers, totalAmount, orderId } = input;
+  const { campania, buyerName, buyerEmail, ticketNumbers, totalAmount, orderId } =
+    input;
+  // El sorteo, el agradecimiento y el relleno con ceros son los mismos que
+  // usa el aviso de WhatsApp del panel: un comprador no puede recibir dos
+  // mensajes que digan cosas distintas.
+  const textos = textosDePanel(campania);
   const numbersText = ticketNumbers
     .sort((a, b) => a - b)
-    .map((n) => n.toString().padStart(4, "0"))
+    .map((n) => n.toString().padStart(textos.digitos, "0"))
     .join(", ");
 
-  const subject = `Confirmación de compra - ${raffleConfig.title}`;
+  const subject = `Confirmación de compra - ${campania.titulo}`;
   const body = [
     `Hola ${buyerName},`,
     "",
     `Tu compra fue confirmada. Número de orden: ${orderId}.`,
     `Tus números: ${numbersText}`,
     `Monto total: $${totalAmount} ARS`,
-    `Fecha del sorteo: ${formatDrawDate(raffleConfig.drawDate)} (por la Lotería Nacional, sorteo nocturno)`,
+    textos.sorteo,
     "",
-    "Gracias por colaborar con PolioPlus - Rotary Distrito 4921.",
+    textos.gracias,
   ].join("\n");
 
   if (!process.env.RESEND_API_KEY) {
@@ -37,7 +44,9 @@ export async function sendConfirmationEmail(input: ConfirmationEmailInput) {
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "Bono Solidario PolioPlus <onboarding@resend.dev>",
+    from:
+      process.env.RESEND_FROM_EMAIL ??
+      "Bonos solidarios de Rotary <onboarding@resend.dev>",
     to: buyerEmail,
     subject,
     text: body,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { sesionMaestraDePedido } from "@/lib/admin-auth";
 import { DISTRICT_CLUBS } from "@/lib/clubs";
 import { SOCIO_ACTUAL } from "@/lib/socios-actuales";
 
@@ -17,7 +17,8 @@ import { SOCIO_ACTUAL } from "@/lib/socios-actuales";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  if (!(await isAdminAuthorized(request))) {
+  // Es del distrito, no de una campaña: solo con la clave maestra.
+  if (!(await sesionMaestraDePedido(request))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendConfirmationEmail } from "@/lib/email";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { puedeVer, sesionDePedido } from "@/lib/admin-auth";
+import { campaniaDeSlug, POLIOPLUS } from "@/lib/campanias";
 
 /**
  * Confirmacion manual de pago, para usar mientras Mercado Pago no esta
@@ -17,7 +18,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await isAdminAuthorized(request))) {
+  const sesion = await sesionDePedido(request);
+  if (!sesion) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 
@@ -31,6 +33,7 @@ export async function POST(
     where: { id: orderId },
     select: {
       id: true,
+      campania: true,
       status: true,
       buyerName: true,
       buyerEmail: true,
@@ -40,7 +43,9 @@ export async function POST(
     },
   });
 
-  if (!order) {
+  // Una orden de otra campaña no existe para esta sesion: los numeros de
+  // orden son correlativos y estan a la vista en el panel.
+  if (!order || !puedeVer(sesion, order.campania)) {
     return NextResponse.json({ error: "Orden no encontrada." }, { status: 404 });
   }
   if (order.status !== "PENDIENTE") {
@@ -62,6 +67,7 @@ export async function POST(
   let emailSent = false;
   try {
     const result = await sendConfirmationEmail({
+      campania: campaniaDeSlug(order.campania) ?? POLIOPLUS,
       buyerName: order.buyerName,
       buyerEmail: order.buyerEmail,
       ticketNumbers: order.tickets.map((t) => t.number),

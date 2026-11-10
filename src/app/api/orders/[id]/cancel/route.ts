@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { puedeVer, sesionDePedido } from "@/lib/admin-auth";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await isAdminAuthorized(request))) {
+  const sesion = await sesionDePedido(request);
+  if (!sesion) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 
@@ -18,9 +19,18 @@ export async function POST(
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { id: true, status: true },
+    select: { campania: true, id: true, status: true },
   });
-  if (!order) {
+  /*
+   * La orden existe pero puede ser de la otra campaña. Los numeros de
+   * orden son correlativos y estan a la vista en el panel, asi que sin
+   * este control la clave de una campaña alcanzaba para operar sobre las
+   * compras de la otra cambiando un numero en la URL.
+   *
+   * Responde "no encontrada" y no "no autorizado": asi tampoco se puede
+   * averiguar cuantas ordenes tiene la otra campaña.
+   */
+  if (!order || !puedeVer(sesion, order.campania)) {
     return NextResponse.json({ error: "Orden no encontrada." }, { status: 404 });
   }
   if (order.status === "CANCELADO" || order.status === "EXPIRADO") {

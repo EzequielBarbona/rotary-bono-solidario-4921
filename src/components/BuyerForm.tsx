@@ -8,18 +8,34 @@ import { CopyButton } from "@/components/CopyButton";
 import { DISTRICT_CLUBS, OTRO_CLUB, SIN_CLUB, hayListaDeClubes } from "@/lib/clubs";
 import { childrenProtected, pictogramScale } from "@/lib/impact";
 import { PersonPictogram } from "@/components/PersonPictogram";
+import type { Campania, Cuenta, Documento } from "@/lib/campanias";
 
 export function BuyerForm({
+  campania,
   ticketPriceArs,
-  bankAccountHolder,
-  bankAlias,
-  bankCbu,
+  digitos,
+  pideClub,
+  documento,
+  mostrarImpactoPolio,
+  cuenta,
+  soporte,
   clubInvitante,
 }: {
+  /** Slug de la campaña: va con la reserva y define a donde se vuelve. */
+  campania: string;
   ticketPriceArs: number;
-  bankAccountHolder: string;
-  bankAlias: string;
-  bankCbu: string;
+  /** Con cuantos ceros se escribe un numero: "0001" o "000". */
+  digitos: number;
+  /** Si se pregunta que club invito (solo en las campañas de los clubes). */
+  pideClub: boolean;
+  /** Que documento se le pide al comprador: DNI, CUIT/CUIL (ver DOCUMENTOS). */
+  documento: Documento;
+  /** Si se muestra la cuenta de chicos vacunados (solo el PolioPlus). */
+  mostrarImpactoPolio: boolean;
+  /** La cuenta a la que se transfiere, la de esta campaña. */
+  cuenta: Cuenta;
+  /** El WhatsApp al que escribe el que se traba subiendo el comprobante. */
+  soporte: Campania["soporte"];
   /** Club por cuyo link entro el comprador, si entro por uno. */
   clubInvitante: string | null;
 }) {
@@ -70,20 +86,22 @@ export function BuyerForm({
 
   useEffect(() => {
     if (missingSelection) {
-      router.replace(quantity ? "/comprar/numeros" : "/comprar/cantidad");
+      router.replace(
+        quantity ? `/comprar/${campania}/numeros` : `/comprar/${campania}/cantidad`
+      );
     }
-  }, [missingSelection, quantity, router]);
+  }, [missingSelection, quantity, campania, router]);
 
   if (missingSelection) {
     return null;
   }
 
   const total = selectedNumbers.length * ticketPriceArs;
-  const kids = childrenProtected(total);
+  const kids = mostrarImpactoPolio ? childrenProtected(total) : 0;
   const pictogram = pictogramScale(kids, kids);
   const numbersText = [...selectedNumbers]
     .sort((a, b) => a - b)
-    .map((n) => n.toString().padStart(4, "0"))
+    .map((n) => n.toString().padStart(digitos, "0"))
     .join(", ");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -96,12 +114,17 @@ export function BuyerForm({
     setError(null);
     try {
       const formData = new FormData();
+      // La campaña viaja con la reserva: el servidor saca de ahi el
+      // precio, el rango de numeros y la hora de cierre.
+      formData.set("campania", campania);
       formData.set("numbers", JSON.stringify(selectedNumbers));
       formData.set("buyerName", buyerName);
       formData.set("buyerEmail", buyerEmail);
       formData.set("buyerPhone", buyerPhone);
       formData.set("buyerCuit", buyerCuit);
-      formData.set("buyerClub", buyerClub === OTRO_CLUB ? otroClub.trim() : buyerClub);
+      if (pideClub) {
+        formData.set("buyerClub", buyerClub === OTRO_CLUB ? otroClub.trim() : buyerClub);
+      }
       formData.set("receipt", receiptFile);
 
       const res = await fetch("/api/reserve", { method: "POST", body: formData });
@@ -155,15 +178,20 @@ export function BuyerForm({
       <div className="border border-rotary-gold/40 bg-rotary-gold/10 rounded-lg p-4 flex flex-col gap-1.5 text-rotary-ink text-sm">
         <p className="font-bold">Transferí el total a esta cuenta</p>
         <p>
-          <span className="font-semibold">Titular:</span> {bankAccountHolder}
+          <span className="font-semibold">Titular:</span> {cuenta.titular}
         </p>
+        {cuenta.cuit && (
+          <p>
+            <span className="font-semibold">CUIT:</span> {cuenta.cuit}
+          </p>
+        )}
         <p>
-          <span className="font-semibold">Alias:</span> {bankAlias}
-          <CopyButton value={bankAlias} label="Copiar alias" />
+          <span className="font-semibold">Alias:</span> {cuenta.alias}
+          <CopyButton value={cuenta.alias} label="Copiar alias" />
         </p>
         <p className="break-all">
-          <span className="font-semibold">CBU/CVU:</span> {bankCbu}
-          <CopyButton value={bankCbu} label="Copiar CBU/CVU" />
+          <span className="font-semibold">CBU/CVU:</span> {cuenta.cbu}
+          <CopyButton value={cuenta.cbu} label="Copiar CBU/CVU" />
         </p>
         <p>
           <span className="font-semibold">Monto:</span> {formatArs(total)}
@@ -214,9 +242,13 @@ export function BuyerForm({
         />
         <input
           required
-          placeholder="CUIT / CUIL con el que transferís"
+          placeholder={documento.pedido}
           value={buyerCuit}
           onChange={(e) => setBuyerCuit(e.target.value)}
+          // En el celular abre el teclado numerico, que es con lo que se
+          // escribe un documento. Va inputMode y no type="number", que
+          // ademas pone flechitas y se come los ceros de adelante.
+          inputMode="numeric"
           className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
         />
         {/* Con el padron cargado se elige de una lista, para que el ranking
@@ -228,7 +260,7 @@ export function BuyerForm({
             los compradores no van a ser socios de ninguno. Preguntado al
             reves, todo vecino contesta "no soy rotario" y el club que
             hizo el trabajo se queda sin el punto. */}
-        {hayListaDeClubes() ? (
+        {pideClub && (hayListaDeClubes() ? (
           <>
             {clubInvitante && (
               <p className="text-sm bg-rotary-azure/10 text-rotary-ink rounded-lg px-3 py-2.5">
@@ -274,7 +306,7 @@ export function BuyerForm({
             onChange={(e) => setBuyerClub(e.target.value)}
             className="border border-rotary-ink/15 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rotary-azure"
           />
-        )}
+        ))}
 
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-rotary-ink">
@@ -334,7 +366,9 @@ export function BuyerForm({
             <p className="text-rotary-ink/70">
               Si aun así no podés,{" "}
               <a
-                href="https://wa.me/5492994736968?text=Hola%2C%20no%20puedo%20subir%20el%20comprobante%20del%20bono"
+                href={`https://wa.me/${soporte.wa}?text=${encodeURIComponent(
+                  "Hola, no puedo subir el comprobante del bono"
+                )}`}
                 target="_blank"
                 rel="noreferrer"
                 className="font-semibold text-rotary-azure hover:underline"
@@ -357,20 +391,22 @@ export function BuyerForm({
               y para poder contactarte si sos ganador del sorteo.
             </p>
             <p>
-              <span className="font-semibold text-rotary-ink">CUIT/CUIL:</span> las
-              transferencias bancarias muestran el CUIT de quien las hace, así que lo usamos
-              para cruzar tu pago con tu compra más rápido y con más seguridad, sobre todo si
-              hay varias compras con montos parecidos el mismo día.
+              <span className="font-semibold text-rotary-ink">{documento.etiqueta}:</span>{" "}
+              {documento.porQue}
             </p>
-            <p>
-              <span className="font-semibold text-rotary-ink">
-                Club que te invitó:
-              </span>{" "}
-              los clubes del distrito difunden el bono en sus ciudades y compiten
-              entre ellos por cuántos chicos ayudan a vacunar. Tu compra suma a la
-              cuenta del club que te invitó, sin importar si sos socio o no. Si
-              llegaste por tu cuenta, elegí esa opción y tu aporte suma igual.
-            </p>
+            {/* La explicación del club solo donde el campo existe: en la
+                venta directa seria aclarar algo que nadie pregunto. */}
+            {pideClub && (
+              <p>
+                <span className="font-semibold text-rotary-ink">
+                  Club que te invitó:
+                </span>{" "}
+                los clubes del distrito difunden el bono en sus ciudades y compiten
+                entre ellos por cuántos chicos ayudan a vacunar. Tu compra suma a la
+                cuenta del club que te invitó, sin importar si sos socio o no. Si
+                llegaste por tu cuenta, elegí esa opción y tu aporte suma igual.
+              </p>
+            )}
             <p>
               <span className="font-semibold text-rotary-ink">Captura del comprobante:</span>{" "}
               es la prueba de que hiciste la transferencia &mdash; sin ella no podemos

@@ -1,18 +1,33 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { isAdminSessionActive } from "@/lib/admin-auth";
-import { formatArs, formatDrawDate } from "@/lib/format";
-import { raffleConfig } from "@/lib/config";
+import { sesionActiva } from "@/lib/admin-auth";
+import { formatArs } from "@/lib/format";
 import { startOfArtDay, startOfArtWeek } from "@/lib/dates";
+import { campaniaDelPanel, CAMPANIAS_DEL_PANEL } from "@/lib/panel-sesion";
+import { textosDePanel } from "@/lib/panel-campania";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { ListaOrdenes } from "@/components/admin/ListaOrdenes";
 
+// Las ordenes y los totales se leen en cada visita.
+export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  const authorized = await isAdminSessionActive();
+export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
+  const sesion = await sesionActiva();
 
-  if (!authorized) {
+  if (!sesion) {
     return <AdminLogin />;
   }
+
+  /*
+   * De que campaña son las ordenes que se ven.
+   *
+   * Con una clave de campaña, la suya y ninguna otra: no alcanza con no
+   * ofrecerle el cambio en la pantalla, porque bastaria con escribir
+   * ?campania= en la URL. Con la clave maestra se elige, y por defecto se
+   * muestra la que esta vendiendo.
+   */
+  const { campania, puedeElegir } = campaniaDelPanel(sesion, (await searchParams).campania);
+  const alcance = { campania: campania.slug };
 
   const now = new Date();
   const todayStart = startOfArtDay(now);
@@ -44,15 +59,16 @@ export default async function AdminPage() {
         receiptHash: true,
         tickets: { select: { number: true } },
       },
+      where: alcance,
       orderBy: { createdAt: "desc" },
     }),
-    prisma.ticket.groupBy({ by: ["status"], _count: true }),
+    prisma.ticket.groupBy({ by: ["status"], where: alcance, _count: true }),
     prisma.order.aggregate({
-      where: { status: claimedStatus, createdAt: { gte: todayStart } },
+      where: { ...alcance, status: claimedStatus, createdAt: { gte: todayStart } },
       _sum: { totalAmount: true },
     }),
     prisma.order.aggregate({
-      where: { status: claimedStatus, createdAt: { gte: weekStart } },
+      where: { ...alcance, status: claimedStatus, createdAt: { gte: weekStart } },
       _sum: { totalAmount: true },
     }),
   ]);
@@ -109,7 +125,32 @@ export default async function AdminPage() {
 
   return (
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex flex-col gap-6">
-      <h1 className="text-2xl font-extrabold text-rotary-ink">Órdenes</h1>
+      <div className="flex flex-col gap-3">
+        <h1 className="text-2xl font-extrabold text-rotary-ink">
+          Órdenes · {campania.nombreCorto}
+        </h1>
+        {puedeElegir && (
+          // Con la clave maestra se pasa de una campaña a la otra. Las dos
+          // listas nunca se mezclan en la misma pantalla: los totales de
+          // dos campañas sumados no significan nada.
+          <div className="flex flex-wrap gap-2">
+            {CAMPANIAS_DEL_PANEL.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/admin?campania=${c.slug}`}
+                aria-current={c.slug === campania.slug ? "page" : undefined}
+                className={`text-sm rounded-full px-3 py-1.5 border transition-colors ${
+                  c.slug === campania.slug
+                    ? "bg-rotary-azure text-white border-rotary-azure font-bold"
+                    : "border-rotary-ink/15 text-rotary-ink/70 hover:border-rotary-azure"
+                }`}
+              >
+                {c.nombreCorto}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-3 text-sm">
         <Stat label="Vendidos" value={countByStatus.VENDIDO ?? 0} />
@@ -145,10 +186,7 @@ export default async function AdminPage() {
         </div>
       )}
 
-      <ListaOrdenes
-        ordenes={ordenesParaLista}
-        drawDateLabel={formatDrawDate(raffleConfig.drawDate)}
-      />
+      <ListaOrdenes ordenes={ordenesParaLista} textos={textosDePanel(campania)} />
     </main>
   );
 }

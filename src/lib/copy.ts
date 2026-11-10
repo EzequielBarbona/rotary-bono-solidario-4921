@@ -1,7 +1,8 @@
 import { raffleConfig } from "@/lib/config";
 import { formatArs, formatDrawDate } from "@/lib/format";
 import { childrenProtected } from "@/lib/impact";
-import { CIERRE } from "@/lib/cierre";
+import { cierreDe } from "@/lib/cierre";
+import { POLIOPLUS } from "@/lib/campanias";
 import { formatArtDayTime } from "@/lib/dates";
 
 /*
@@ -19,6 +20,14 @@ import { formatArtDayTime } from "@/lib/dates";
  * tranquilo y al que no, lo pone en movimiento.
  */
 export const GANCHO = "¿Ya tenés tu bono?";
+
+/*
+ * Todo este archivo es del PolioPlus: el volante impreso, la tarjeta de
+ * WhatsApp y el mensaje que reenvian los clubes son de esa campaña. Por
+ * eso la hora de cierre se pide una sola vez, aca, y no la recibe cada
+ * funcion.
+ */
+const CIERRE = cierreDe(POLIOPLUS);
 
 export const LEMA = ["Mantengamos la esperanza", "de un mundo libre de polio"];
 

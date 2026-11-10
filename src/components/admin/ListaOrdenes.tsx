@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { OrderCard } from "@/components/admin/OrderCard";
 import { ChipFiltro } from "@/components/admin/ChipFiltro";
 import { SIN_CLUB } from "@/lib/clubs";
+import type { TextosDePanel } from "@/lib/panel-campania";
 
 type AdminOrder = {
   id: number;
@@ -128,10 +129,11 @@ function etiquetaDeClub(clave: string) {
  */
 export function ListaOrdenes({
   ordenes,
-  drawDateLabel,
+  textos,
 }: {
   ordenes: AdminOrder[];
-  drawDateLabel: string;
+  /** Como se le habla al comprador de esta campaña. */
+  textos: TextosDePanel;
 }) {
   const [busqueda, setBusqueda] = useState("");
   const [estado, setEstado] = useState<Estado>("todas");
@@ -221,7 +223,7 @@ export function ListaOrdenes({
         type="search"
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
-        placeholder="Buscar por nombre, CUIT, teléfono, email, #orden o número de bono"
+        placeholder={`Buscar por nombre, ${textos.documento}, teléfono, email, #orden o número de bono`}
         aria-label="Buscar órdenes"
         className={campo}
       />
@@ -327,7 +329,7 @@ export function ListaOrdenes({
           </p>
         )}
         {visibles.map((orden) => (
-          <OrderCard key={orden.id} drawDateLabel={drawDateLabel} order={orden} />
+          <OrderCard key={orden.id} textos={textos} order={orden} />
         ))}
       </div>
     </div>

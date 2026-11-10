@@ -1,6 +1,8 @@
 import ExcelJS from "exceljs";
 import { prisma } from "@/lib/prisma";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { sesionDePedido } from "@/lib/admin-auth";
+import { campaniaDelPanel } from "@/lib/panel-sesion";
+import { DOCUMENTOS } from "@/lib/campanias";
 import { ART_WEEK_MS, formatArtDayMonth, startOfArtWeek } from "@/lib/dates";
 import { rankingPorClub } from "@/lib/ranking";
 
@@ -28,9 +30,17 @@ function fechaHoraArt(date: Date) {
 }
 
 export async function GET(request: Request) {
-  if (!(await isAdminAuthorized(request))) {
+  const sesion = await sesionDePedido(request);
+  if (!sesion) {
     return new Response("No autorizado.", { status: 401 });
   }
+
+  // Una planilla por campaña: las ordenes de dos ventas distintas en la
+  // misma hoja no se pueden cruzar contra ningun resumen bancario.
+  const { campania } = campaniaDelPanel(
+    sesion,
+    new URL(request.url).searchParams.get("campania") ?? undefined
+  );
 
   // Sin select explicito Prisma traeria tambien receiptImage, que no
   // entra en la planilla: seria bajarse todas las fotos por cada Excel.
@@ -49,11 +59,12 @@ export async function GET(request: Request) {
       confirmationSentAt: true,
       tickets: { select: { number: true }, orderBy: { number: "asc" } },
     },
+    where: { campania: campania.slug },
     orderBy: { createdAt: "asc" },
   });
 
   const libro = new ExcelJS.Workbook();
-  libro.creator = "Bono Solidario PolioPlus - Distrito 4921";
+  libro.creator = campania.titulo;
   libro.created = new Date();
 
   // ---------- Hoja 1: una fila por orden ----------
@@ -65,7 +76,7 @@ export async function GET(request: Request) {
     { header: "Comprador", key: "nombre", width: 26 },
     { header: "Email", key: "email", width: 28 },
     { header: "Teléfono", key: "telefono", width: 16 },
-    { header: "CUIT/CUIL", key: "cuit", width: 15 },
+    { header: DOCUMENTOS[campania.documento].etiqueta, key: "cuit", width: 15 },
     { header: "Club", key: "club", width: 20 },
     { header: "Bonos", key: "bonos", width: 8 },
     { header: "Números", key: "numeros", width: 30 },
@@ -84,7 +95,9 @@ export async function GET(request: Request) {
       cuit: orden.buyerCuit,
       club: orden.buyerClub ?? "",
       bonos: orden.ticketCount,
-      numeros: orden.tickets.map((t) => t.number.toString().padStart(4, "0")).join(", "),
+      numeros: orden.tickets
+        .map((t) => t.number.toString().padStart(campania.digitos, "0"))
+        .join(", "),
       monto: orden.totalAmount,
       aviso: orden.confirmationSentAt ? fechaHoraArt(orden.confirmationSentAt) : "",
     });
@@ -132,27 +145,34 @@ export async function GET(request: Request) {
     }
   }
 
-  // ---------- Hoja 3: el mismo ranking que muestra /admin/clubes ----------
-  const porClub = libro.addWorksheet("Por club");
-  porClub.columns = [
-    { header: "Puesto", key: "puesto", width: 8 },
-    { header: "Club", key: "club", width: 34 },
-    { header: "Bonos", key: "bonos", width: 8 },
-    { header: "Reservado", key: "reservado", width: 14 },
-    { header: "Confirmado", key: "confirmado", width: 14 },
-  ];
+  /*
+   * ---------- Hoja 3: el mismo ranking que muestra /admin/clubes ----------
+   *
+   * Solo en la campaña que vendieron los clubes. En una venta directa la
+   * hoja saldria con una fila sola, "Sin club", que no informa nada.
+   */
+  const porClub = campania.pideClub ? libro.addWorksheet("Por club") : null;
+  if (porClub) {
+    porClub.columns = [
+      { header: "Puesto", key: "puesto", width: 8 },
+      { header: "Club", key: "club", width: 34 },
+      { header: "Bonos", key: "bonos", width: 8 },
+      { header: "Reservado", key: "reservado", width: 14 },
+      { header: "Confirmado", key: "confirmado", width: 14 },
+    ];
 
-  for (const fila of await rankingPorClub()) {
-    porClub.addRow({
-      puesto: fila.puesto ?? "",
-      club: fila.club,
-      bonos: fila.bonos,
-      reservado: fila.reservado,
-      confirmado: fila.confirmado,
-    });
+    for (const fila of await rankingPorClub()) {
+      porClub.addRow({
+        puesto: fila.puesto ?? "",
+        club: fila.club,
+        bonos: fila.bonos,
+        reservado: fila.reservado,
+        confirmado: fila.confirmado,
+      });
+    }
   }
 
-  for (const h of [hoja, resumen, porClub]) {
+  for (const h of [hoja, resumen, ...(porClub ? [porClub] : [])]) {
     h.getRow(1).font = { bold: true };
     h.views = [{ state: "frozen", ySplit: 1 }];
   }
@@ -161,8 +181,10 @@ export async function GET(request: Request) {
   for (const key of ["reservado", "confirmado", "acumulado"]) {
     resumen.getColumn(key).numFmt = '"$" #,##0';
   }
-  for (const key of ["reservado", "confirmado"]) {
-    porClub.getColumn(key).numFmt = '"$" #,##0';
+  if (porClub) {
+    for (const key of ["reservado", "confirmado"]) {
+      porClub.getColumn(key).numFmt = '"$" #,##0';
+    }
   }
 
   const buffer = await libro.xlsx.writeBuffer();
@@ -172,7 +194,7 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="bono-polioplus-ventas-${hoy}.xlsx"`,
+      "Content-Disposition": `attachment; filename="bono-${campania.slug}-ventas-${hoy}.xlsx"`,
       "Cache-Control": "no-store",
     },
   });

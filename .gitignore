@@ -44,3 +44,9 @@ yarn-error.log*
 next-env.d.ts
 
 brand-assets/
+
+# informes con datos personales del padron: nunca al repo publico
+/informes/
+
+# Historial que deja R/Radian al pasar por una skill: no es del proyecto.
+.Rhistory

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatArs } from "@/lib/format";
 import { toWhatsAppNumber } from "@/lib/phone";
-import { RUTA_DISTRITO, rutaDeClub } from "@/lib/clubs";
+import { rutaDeClub } from "@/lib/clubs";
+import type { TextosDePanel } from "@/lib/panel-campania";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 type AdminOrder = {
@@ -44,10 +45,11 @@ const STATUS_STYLES: Record<AdminOrder["status"], string> = {
 
 export function OrderCard({
   order,
-  drawDateLabel,
+  textos,
 }: {
   order: AdminOrder;
-  drawDateLabel: string;
+  /** Como se le habla al comprador de esta campaña (ver lib/panel-campania.ts). */
+  textos: TextosDePanel;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -61,26 +63,28 @@ export function OrderCard({
 
   const numbersText = [...order.numbers]
     .sort((a, b) => a - b)
-    .map((n) => n.toString().padStart(4, "0"))
+    .map((n) => n.toString().padStart(textos.digitos, "0"))
     .join(", ");
 
   // Sin dominio propio no podemos mandar mails, y el canal real del
   // distrito es WhatsApp igual. Esto le deja el mensaje escrito al admin
   // para que solo tenga que apretar enviar.
   const whatsappNumber = toWhatsAppNumber(order.buyerPhone);
-  const rutaClub = rutaDeClub(order.buyerClub);
+  // El link del club solo tiene sentido en la campaña que lleva la copa
+  // entre clubes.
+  const rutaClub = textos.copaClubes ? rutaDeClub(order.buyerClub) : null;
 
   function avisarPorWhatsApp() {
     const mensaje = [
-      `Hola ${order.buyerName}, te confirmamos el pago del Bono Solidario PolioPlus del Distrito 4921.`,
+      `Hola ${order.buyerName}, te confirmamos el pago de ${textos.nombre}.`,
       "",
       `Tus números: ${numbersText}`,
       `Total: ${formatArs(order.totalAmount)}`,
       "",
-      `El sorteo es el ${drawDateLabel}, por la Lotería Nacional, sorteo nocturno.`,
+      textos.sorteo,
       `Podés ver tu orden acá: ${window.location.origin}/orden/${order.id}`,
       "",
-      "¡Gracias por colaborar para erradicar la polio!",
+      textos.gracias,
       "",
       // El link que se le manda al comprador lleva el codigo de su club:
       // todo lo que se venda por esa cadena le suma a ese club. Hay que
@@ -96,7 +100,7 @@ export function OrderCard({
             "Compartilo con tu familia, tu trabajo y tus grupos:",
           ]
         : ["¿Nos das una mano para que llegue más lejos? Compartí el bono con tu gente:"]),
-      `${window.location.origin}${rutaClub ?? RUTA_DISTRITO}`,
+      `${window.location.origin}${rutaClub ?? textos.rutaDifusion}`,
     ].join("\n");
     window.open(
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}`,
@@ -211,7 +215,7 @@ export function OrderCard({
           <span className="font-semibold">Tel:</span> {order.buyerPhone}
         </p>
         <p>
-          <span className="font-semibold">CUIT/CUIL:</span> {order.buyerCuit}
+          <span className="font-semibold">{textos.documento}:</span> {order.buyerCuit}
         </p>
         {order.buyerClub && (
           <p>
