@@ -37,8 +37,11 @@ export function LogoInstitucion({
   priority?: boolean;
 }) {
   const escala = institucion.escala ?? 1;
-  const remChico = alto * escala;
-  const remGrande = altoSm * escala;
+  // Redondeado: sin esto, 3.5 * 0.8 sale "2.8000000000000003rem" en el
+  // HTML. Se dibuja igual, pero no hace falta mandar eso por la red.
+  const rem = (base: number) => Math.round(base * escala * 1000) / 1000;
+  const remChico = rem(alto);
+  const remGrande = rem(altoSm);
   const pxChico = Math.round(remChico * PX_POR_REM);
 
   return (
