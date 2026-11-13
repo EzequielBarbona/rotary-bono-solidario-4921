@@ -364,18 +364,24 @@ export function BuyerForm({
               abrilo y sacale una captura igual que arriba.
             </p>
             <p className="text-rotary-ink/70">
-              Si aun así no podés,{" "}
-              <a
-                href={`https://wa.me/${soporte.wa}?text=${encodeURIComponent(
-                  "Hola, no puedo subir el comprobante del bono"
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-rotary-azure hover:underline"
-              >
-                escribinos por WhatsApp
-              </a>{" "}
-              y lo resolvemos con vos.
+              Si aun así no podés, escribinos por WhatsApp y lo resolvemos con
+              vos:{" "}
+              {soporte.map((contacto, i) => (
+                <span key={contacto.wa}>
+                  {i > 0 && " o "}
+                  <a
+                    href={`https://wa.me/${contacto.wa}?text=${encodeURIComponent(
+                      "Hola, no puedo subir el comprobante del bono"
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-rotary-azure hover:underline"
+                  >
+                    {soporte.length > 1 ? contacto.quien : "escribinos"}
+                  </a>
+                </span>
+              ))}
+              .
             </p>
           </div>
         </details>

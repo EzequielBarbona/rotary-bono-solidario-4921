@@ -80,6 +80,23 @@ export type Institucion = {
   alto: number;
 };
 
+export type Contacto = {
+  /** Quien contesta de ese lado: "Rotary Club de Neuquen". */
+  quien: string;
+  /** Solo digitos, como lo quiere wa.me. */
+  wa: string;
+  /** El mismo numero como se lee en pantalla. */
+  texto: string;
+};
+
+export type Foto = {
+  src: string;
+  alt: string;
+  /** Proporciones del archivo, para que Next no tenga que adivinarlas. */
+  ancho: number;
+  alto: number;
+};
+
 export type Cuenta = {
   titular: string;
   cbu: string;
@@ -132,19 +149,25 @@ export type Campania = {
   /** Texto del sorteo tal cual se anuncia. Null mientras no este definido. */
   sorteo: string | null;
   /**
-   * El WhatsApp al que escribe el comprador que se traba.
+   * A quien le escribe el comprador que se traba.
    *
-   * Es por campaña y no del sitio: al que compra la camiseta lo atiende
-   * Rotary Neuquen, no el subcomite del PolioPlus. Un numero equivocado en
-   * el pie es peor que ninguno, porque el comprador escribe y nadie
-   * contesta.
+   * Es por campaña y no del sitio: al que compra la camiseta lo atienden
+   * Rotary Neuquen y Moiru, no el subcomite del PolioPlus. Un numero
+   * equivocado en el pie es peor que ninguno, porque el comprador escribe
+   * y nadie contesta.
+   *
+   * Son varios porque una campaña de dos instituciones la atienden las
+   * dos: el que compra elige a quien escribirle.
    */
-  soporte: {
-    /** Solo digitos, como lo quiere wa.me. */
-    wa: string;
-    /** El mismo numero como se lee en pantalla. */
-    texto: string;
-  };
+  soporte: Contacto[];
+  /**
+   * Fotos del premio.
+   *
+   * Un bono se vende mostrando lo que se sortea. Van en la campaña y no
+   * sueltas en la pagina para que una campaña nueva las traiga con el
+   * resto de sus datos.
+   */
+  fotos?: Foto[];
   /**
    * La cuenta donde se transfiere.
    *
@@ -174,9 +197,12 @@ export type Campania = {
 
 const ROTARY: Institucion = {
   nombre: "Rotary Club de Neuquén",
-  logo: "/brand/rotary-neuquen.png",
-  ancho: 640,
-  alto: 288,
+  // El archivo lleva un nombre nuevo a proposito: el optimizador de
+  // imagenes cachea por URL, asi que un logo distinto con el mismo nombre
+  // se sigue sirviendo viejo por un rato.
+  logo: "/brand/rotary-neuquen-lockup.png",
+  ancho: 790,
+  alto: 256,
 };
 
 const MOIRU: Institucion = {
@@ -210,18 +236,41 @@ export const CAMPANIAS: Campania[] = [
     },
     premio: "Camiseta del Club Cipolletti firmada por los jugadores",
     premioDetalle: "Talle S",
-    precioArs: 2000,
+    precioArs: 2500,
     documento: "dni",
     pideClub: false,
     totalNumeros: 1000,
     primerNumero: 0,
     digitos: 3,
-    cierreAt: null,
+    /*
+     * La venta cierra el mismo dia del sorteo, a las 18:00: la nocturna
+     * sale cerca de las 21, y entre medio hay que terminar de confirmar
+     * las transferencias que entraron. Es el mismo criterio con el que
+     * cerro el PolioPlus.
+     */
+    cierreAt: "2026-11-30T18:00:00-03:00",
     // Los 1.000 numeros van del 000 al 999 porque el sorteo son las tres
-    // ultimas cifras: la fecha todavia no esta, el mecanismo si.
+    // ultimas cifras.
     sorteo:
-      "Por las 3 últimas cifras de la Lotería de la Ciudad de Buenos Aires · fecha a confirmar",
-    soporte: { wa: "5492995837763", texto: "+54 9 299 583-7763" },
+      "Por las 3 últimas cifras de la Lotería de la Ciudad de Buenos Aires · nocturna del lunes 30 de noviembre",
+    soporte: [
+      { quien: "Rotary Club de Neuquén", wa: "5492994567773", texto: "+54 9 299 456-7773" },
+      { quien: "Asociación Moiru", wa: "5492995036928", texto: "+54 9 299 503-6928" },
+    ],
+    fotos: [
+      {
+        src: "/camiseta/frente.jpg",
+        alt: "Frente de la camiseta del Club Cipolletti con las firmas de los jugadores",
+        ancho: 891,
+        alto: 832,
+      },
+      {
+        src: "/camiseta/espalda.jpg",
+        alt: "Espalda de la camiseta del Club Cipolletti",
+        ancho: 813,
+        alto: 761,
+      },
+    ],
     publicada: true,
     paleta: {
       // El azul de Rotary abre y el rosa de Moiru cierra: las dos marcas
@@ -256,7 +305,9 @@ export const CAMPANIAS: Campania[] = [
     digitos: 4,
     cierreAt: "2026-10-24T18:00:00-03:00",
     sorteo: "Sorteada el 24 de octubre de 2026 por la Lotería Nacional",
-    soporte: { wa: "5492994736968", texto: "+54 9 299 4736968" },
+    soporte: [
+      { quien: "Subcomité PolioPlus", wa: "5492994736968", texto: "+54 9 299 4736968" },
+    ],
     publicada: true,
     paleta: {
       fondo: "linear-gradient(135deg, #0067C8 0%, #17458F 100%)",
@@ -346,7 +397,7 @@ export function campaniaDeRuta(pathname: string | null | undefined): Campania | 
  * pantalla de una orden, donde no se sabe de cual se trata, a la que
  * tenga la venta abierta: es de donde van a venir los problemas de hoy.
  */
-export function soporteDeRuta(pathname: string | null | undefined) {
+export function soporteDeRuta(pathname: string | null | undefined): Contacto[] {
   const propia = campaniaDeRuta(pathname);
   if (propia) return propia.soporte;
   const abierta = CAMPANIAS.find((c) => estadoDe(c) === "abierta");

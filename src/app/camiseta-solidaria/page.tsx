@@ -148,6 +148,34 @@ export default async function CamisetaSolidaria() {
         </div>
       </section>
 
+      {/* El premio, apenas se termina el hero: un bono se vende mostrando
+          lo que se sortea, y la camiseta firmada se explica sola. */}
+      {campania.fotos && campania.fotos.length > 0 && (
+        <section className="max-w-3xl w-full mx-auto px-4 pt-8 sm:pt-12 flex flex-col gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {campania.fotos.map((foto) => (
+              <figure
+                key={foto.src}
+                className="bg-white rounded-2xl p-3 shadow-sm overflow-hidden"
+              >
+                <Image
+                  src={foto.src}
+                  alt={foto.alt}
+                  width={foto.ancho}
+                  height={foto.alto}
+                  className="w-full h-auto rounded-xl"
+                  sizes="(min-width: 640px) 440px, 92vw"
+                />
+              </figure>
+            ))}
+          </div>
+          <p className="text-center text-base sm:text-lg font-semibold text-rotary-azure-dark text-balance">
+            Gracias a los jugadores del Club Cipolletti, que firmaron esta
+            camiseta para acompañar la campaña.
+          </p>
+        </section>
+      )}
+
       <section className="max-w-3xl w-full mx-auto px-4 py-10 sm:py-14 flex flex-col gap-8">
         <div className="flex flex-col gap-4 text-base sm:text-lg leading-relaxed text-pretty">
           {PARRAFOS.map((p) => (
