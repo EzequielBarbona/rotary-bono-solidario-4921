@@ -58,8 +58,9 @@ export async function dibujarTarjetaDeCampania(
 
   const cerrada = ventaCerrada(campania);
   const cierre = cierreDe(campania);
-  // Alto al que se dibuja cada logo dentro de la tarjeta blanca.
-  const altoLogo = k(104);
+  // Alto al que se dibuja cada logo dentro de la tarjeta blanca, con el
+  // ajuste de cada marca: a la misma altura no se ven del mismo tamaño.
+  const altoDe = (inst: { escala?: number }) => Math.round(k(104) * (inst.escala ?? 1));
 
   return new ImageResponse(
     (
@@ -120,8 +121,8 @@ export async function dibujarTarjetaDeCampania(
               key={inst.logo}
               src={inst.src}
               alt=""
-              height={altoLogo}
-              width={Math.round((altoLogo * inst.ancho) / inst.alto)}
+              height={altoDe(inst)}
+              width={Math.round((altoDe(inst) * inst.ancho) / inst.alto)}
               style={{ marginLeft: i === 0 ? 0 : k(34) }}
             />
           ))}

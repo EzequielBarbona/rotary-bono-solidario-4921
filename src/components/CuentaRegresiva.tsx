@@ -21,6 +21,16 @@ const DIA = 24 * HORA;
 /** Debajo de esto el cierre deja de ser una fecha y pasa a ser hoy. */
 const UMBRAL_URGENTE = DIA;
 
+/**
+ * Hasta cuando la cuenta es un dato al pie y no un cartel.
+ *
+ * Con dos semanas por delante, un reloj con los segundos corriendo arriba
+ * de todo no apura a nadie: es ruido, y encima gasta el recurso justo
+ * cuando todavia no hace falta. Dentro de las ultimas 48 horas si, que es
+ * cuando queda poco y hay que decirlo fuerte.
+ */
+const UMBRAL_DESTACADO = 2 * DIA;
+
 function desglosar(restante: number) {
   const total = Math.max(0, restante);
   return {
@@ -35,6 +45,7 @@ export function CuentaRegresiva({
   cierraEn,
   restanteInicial,
   textoCierre,
+  titulo = "Últimas horas para ayudar",
 }: {
   /** Instante del cierre en milisegundos desde época. */
   cierraEn: number;
@@ -42,6 +53,8 @@ export function CuentaRegresiva({
   restanteInicial: number;
   /** El cierre en palabras: "sábado 24/10 a las 18:00". */
   textoCierre: string;
+  /** El titulito de arriba del reloj, cuando ya esta destacado. */
+  titulo?: string;
 }) {
   const [restante, setRestante] = useState(restanteInicial);
 
@@ -64,6 +77,26 @@ export function CuentaRegresiva({
   const { dias, horas, minutos, segundos } = desglosar(restante);
   const urgente = restante < UMBRAL_URGENTE;
 
+  /*
+   * Lejos del cierre, un renglon y nada mas: la fecha con lo que falta al
+   * lado. Adentro de las ultimas 48 horas se convierte en el reloj de
+   * abajo, que ocupa lugar y se mira.
+   */
+  if (restante > UMBRAL_DESTACADO) {
+    return (
+      <p
+        role="timer"
+        aria-label={`Faltan ${dias} días para que cierre la venta`}
+        className="text-sm opacity-90"
+      >
+        Cierra el {textoCierre} · faltan{" "}
+        <span className="font-bold tabular-nums">
+          {dias} {dias === 1 ? "día" : "días"}
+        </span>
+      </p>
+    );
+  }
+
   // Para quien escucha la página: sin segundos, que cambian más rápido de
   // lo que se leen, y sin los ceros a la izquierda de los casilleros.
   const enPalabras = [
@@ -83,7 +116,7 @@ export function CuentaRegresiva({
       }`}
     >
       <span className="uppercase tracking-widest text-xs font-bold text-rotary-gold">
-        Últimas horas para ayudar
+        {titulo}
       </span>
 
       <div className="flex items-start gap-2 sm:gap-3">

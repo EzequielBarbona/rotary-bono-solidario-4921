@@ -78,6 +78,14 @@ export type Institucion = {
   /** Proporciones del archivo, para que Next no tenga que adivinarlas. */
   ancho: number;
   alto: number;
+  /**
+   * Cuanto se dibuja respecto del alto comun. 1 es el alto comun.
+   *
+   * Dos logos a la misma altura no se ven del mismo tamaño: depende de
+   * cuanto aire tenga cada uno alrededor de su marca y de que tan robusta
+   * sea la tipografia. Esto es el ajuste a ojo que los empareja.
+   */
+  escala?: number;
 };
 
 export type Contacto = {
@@ -210,6 +218,9 @@ const MOIRU: Institucion = {
   logo: "/brand/moiru.png",
   ancho: 640,
   alto: 181,
+  // El logotipo de Moiru es todo texto grueso y sin margen: a la misma
+  // altura que el de Rotary se come la pieza.
+  escala: 0.8,
 };
 
 const DISTRITO: Institucion = {

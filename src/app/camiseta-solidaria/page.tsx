@@ -1,9 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { LogoInstitucion } from "@/components/LogoInstitucion";
 import { notFound } from "next/navigation";
 import { ContadorBonos } from "@/components/ContadorBonos";
+import { CuentaRegresiva } from "@/components/CuentaRegresiva";
 import { campaniaDeSlug, estadoDe, rangoDe, rutaDeCompra } from "@/lib/campanias";
 import { ventasDe } from "@/lib/ventas-campania";
+import { cierreDe } from "@/lib/cierre";
+import { formatArtDayTime } from "@/lib/dates";
 import { formatArs } from "@/lib/format";
 
 /*
@@ -64,6 +68,27 @@ export default async function CamisetaSolidaria() {
   const estado = estadoDe(campania);
   const abierta = estado === "abierta";
 
+  /*
+   * El cierre, para la cuenta regresiva. Se resuelve acá y no en el
+   * navegador porque el instante y su versión en palabras tienen que
+   * salir del servidor: si cada uno los armara por su lado, el primer
+   * dibujo no coincidiría y React reharía la página entera.
+   */
+  const cierre = cierreDe(campania);
+  const cuenta = cierre
+    ? {
+        cierraEn: cierre.getTime(),
+        /*
+         * La página es force-dynamic: se dibuja de nuevo en cada visita,
+         * así que leer el reloj del servidor es justamente lo que hace
+         * falta. La regla apunta a los componentes del navegador.
+         */
+        // eslint-disable-next-line react-hooks/purity
+        restante: cierre.getTime() - Date.now(),
+        texto: formatArtDayTime(cierre),
+      }
+    : null;
+
   return (
     <main className="flex-1 flex flex-col">
       <section
@@ -84,21 +109,12 @@ export default async function CamisetaSolidaria() {
               tiene version en blanco y sobre el degradado se pierden. */}
           <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-5 gap-y-3 bg-white rounded-2xl px-4 sm:px-5 py-3">
             {campania.instituciones.map((inst) => (
-              <Image
+              <LogoInstitucion
                 key={inst.logo}
-                src={inst.logo}
-                alt={inst.nombre}
-                /*
-                 * El width se calcula con el alto del celular (h-10, 40 px)
-                 * y no con el de escritorio: en un flex, Next usa el ancho
-                 * que se le pasa como base, y con el de escritorio los dos
-                 * logos no entran al lado en una pantalla angosta y se
-                 * apilan. El tamaño real lo manda el className.
-                 */
-                width={Math.round((40 * inst.ancho) / inst.alto)}
-                height={40}
+                institucion={inst}
+                alto={2}
+                altoSm={3.5}
                 priority
-                className="h-8 sm:h-14 w-auto"
               />
             ))}
           </div>
@@ -123,6 +139,18 @@ export default async function CamisetaSolidaria() {
               </span>
             )}
           </p>
+
+          {/* Lejos del cierre es un renglón al pie del precio; adentro de
+              las últimas 48 horas se convierte en el reloj grande, acá
+              arriba, que es cuando el apuro es real. */}
+          {abierta && cuenta && (
+            <CuentaRegresiva
+              cierraEn={cuenta.cierraEn}
+              restanteInicial={cuenta.restante}
+              textoCierre={cuenta.texto}
+              titulo="Últimas horas para comprar"
+            />
+          )}
 
           <ContadorBonos
             vendidos={vendido.bonos}

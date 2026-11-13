@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { LogoInstitucion } from "@/components/LogoInstitucion";
 import { CAMPANIAS, campaniaDeRuta, POLIOPLUS } from "@/lib/campanias";
 
 /*
@@ -18,16 +18,6 @@ import { CAMPANIAS, campaniaDeRuta, POLIOPLUS } from "@/lib/campanias";
  * logo de End Polio.
  */
 const SIN_BARRA = new Set(["/", ...CAMPANIAS.map((c) => c.ruta)]);
-
-/*
- * Alto con el que se calcula el ancho intrinseco de cada logo, en px.
- *
- * Es el del celular (h-10) y no el de escritorio: en un flex, Next usa
- * ese ancho como base, y con el de escritorio dos logos no entran al lado
- * en una pantalla angosta y se apilan. El tamaño real lo manda el
- * className.
- */
-const ALTO_LOGO = 40;
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -46,22 +36,17 @@ export function SiteHeader() {
   const instituciones = (campania ?? POLIOPLUS).instituciones;
   // Un logo solo entra grande; dos tienen que achicarse para entrar al
   // lado en un celular angosto.
-  const alto = instituciones.length > 1 ? "h-8 sm:h-12" : "h-12 sm:h-16";
+  const unaSola = instituciones.length === 1;
 
   return (
     <header className="bg-white py-4 px-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-b border-rotary-ink/5">
       {instituciones.map((inst) => (
-        // El width que se le pasa es el de dibujo y no el del archivo: en
-        // un flex, Next usa el ancho intrinseco como base y los dos logos
-        // se apilan aunque entren de sobra al lado.
-        <Image
+        <LogoInstitucion
           key={inst.logo}
-          src={inst.logo}
-          alt={inst.nombre}
-          width={Math.round((ALTO_LOGO * inst.ancho) / inst.alto)}
-          height={ALTO_LOGO}
+          institucion={inst}
+          alto={unaSola ? 3 : 2}
+          altoSm={unaSola ? 4 : 3}
           priority
-          className={`${alto} w-auto`}
         />
       ))}
     </header>

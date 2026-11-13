@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { LogoInstitucion } from "@/components/LogoInstitucion";
 import { ventasDe, type Vendido } from "@/lib/ventas-campania";
 import { formatArs } from "@/lib/format";
 import { formatArtDayTime } from "@/lib/dates";
@@ -54,9 +54,6 @@ async function ventasPorCampania() {
   );
   return new Map(pares);
 }
-
-/** Alto al que se dibujan los logos en la tarjeta, en px (el sm: del CSS). */
-const ALTO_LOGO = 44;
 
 const ESTILO_ETIQUETA: Record<EstadoCampania, string> = {
   abierta: "bg-emerald-500 text-white",
@@ -119,17 +116,7 @@ function TarjetaCampania({
 
       <div className="relative flex flex-wrap items-center gap-x-4 gap-y-3 bg-white rounded-2xl px-4 py-3">
         {campania.instituciones.map((inst) => (
-          // El width que se le pasa es el de dibujo, no el del archivo: en
-          // un flex, Next usa el ancho intrinseco (640 px) como base y los
-          // dos logos se apilan aunque entren de sobra al lado.
-          <Image
-            key={inst.logo}
-            src={inst.logo}
-            alt={inst.nombre}
-            width={Math.round((ALTO_LOGO * inst.ancho) / inst.alto)}
-            height={ALTO_LOGO}
-            className="h-8 sm:h-11 w-auto"
-          />
+          <LogoInstitucion key={inst.logo} institucion={inst} alto={2} altoSm={2.75} />
         ))}
       </div>
 
