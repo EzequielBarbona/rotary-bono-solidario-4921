@@ -19,8 +19,15 @@ import { CAMPANIAS, campaniaDeRuta, POLIOPLUS } from "@/lib/campanias";
  */
 const SIN_BARRA = new Set(["/", ...CAMPANIAS.map((c) => c.ruta)]);
 
-/** Alto al que se dibujan los logos de una campaña, en px (el sm: del CSS). */
-const ALTO_LOGO = 48;
+/*
+ * Alto con el que se calcula el ancho intrinseco de cada logo, en px.
+ *
+ * Es el del celular (h-10) y no el de escritorio: en un flex, Next usa
+ * ese ancho como base, y con el de escritorio dos logos no entran al lado
+ * en una pantalla angosta y se apilan. El tamaño real lo manda el
+ * className.
+ */
+const ALTO_LOGO = 40;
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -39,7 +46,7 @@ export function SiteHeader() {
   const instituciones = (campania ?? POLIOPLUS).instituciones;
   // Un logo solo entra grande; dos tienen que achicarse para entrar al
   // lado en un celular angosto.
-  const alto = instituciones.length > 1 ? "h-10 sm:h-12" : "h-12 sm:h-16";
+  const alto = instituciones.length > 1 ? "h-8 sm:h-12" : "h-12 sm:h-16";
 
   return (
     <header className="bg-white py-4 px-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-b border-rotary-ink/5">

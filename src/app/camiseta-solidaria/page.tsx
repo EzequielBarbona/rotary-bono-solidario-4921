@@ -82,16 +82,23 @@ export default async function CamisetaSolidaria() {
         <div className="relative max-w-3xl w-full mx-auto px-4 pt-8 sm:pt-12 pb-12 sm:pb-16 flex flex-col items-center gap-5 text-center">
           {/* Los dos logos sobre una tarjeta blanca: ninguno de los dos
               tiene version en blanco y sobre el degradado se pierden. */}
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 bg-white rounded-2xl px-5 py-3">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-5 gap-y-3 bg-white rounded-2xl px-4 sm:px-5 py-3">
             {campania.instituciones.map((inst) => (
               <Image
                 key={inst.logo}
                 src={inst.logo}
                 alt={inst.nombre}
-                width={Math.round((56 * inst.ancho) / inst.alto)}
-                height={56}
+                /*
+                 * El width se calcula con el alto del celular (h-10, 40 px)
+                 * y no con el de escritorio: en un flex, Next usa el ancho
+                 * que se le pasa como base, y con el de escritorio los dos
+                 * logos no entran al lado en una pantalla angosta y se
+                 * apilan. El tamaño real lo manda el className.
+                 */
+                width={Math.round((40 * inst.ancho) / inst.alto)}
+                height={40}
                 priority
-                className="h-10 sm:h-14 w-auto"
+                className="h-8 sm:h-14 w-auto"
               />
             ))}
           </div>

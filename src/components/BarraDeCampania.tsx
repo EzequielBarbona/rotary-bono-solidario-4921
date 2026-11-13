@@ -9,7 +9,7 @@ import type { Campania } from "@/lib/campanias";
  * puede resolverlo SiteHeader, que solo ve la ruta.
  */
 export function BarraDeCampania({ campania }: { campania: Campania }) {
-  const alto = campania.instituciones.length > 1 ? "h-10 sm:h-12" : "h-12 sm:h-16";
+  const alto = campania.instituciones.length > 1 ? "h-8 sm:h-12" : "h-12 sm:h-16";
 
   return (
     <header className="bg-white py-4 px-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-b border-rotary-ink/5">
@@ -21,8 +21,8 @@ export function BarraDeCampania({ campania }: { campania: Campania }) {
           key={inst.logo}
           src={inst.logo}
           alt={inst.nombre}
-          width={Math.round((48 * inst.ancho) / inst.alto)}
-          height={48}
+          width={Math.round((40 * inst.ancho) / inst.alto)}
+          height={40}
           priority
           className={`${alto} w-auto`}
         />
